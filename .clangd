@@ -1,0 +1,11 @@
+CompileFlags:
+  Add:
+    -std=c++23
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Isrc
+    -Ithirdparty/include
+    -isystem"C:/dev/qt-build/qtbase/include"
+    -isystem"C:/dev/qt-build/qtbase/include/QtCore"
+    -isystem"C:/dev/qt-build/qtbase/include/QtWidgets"

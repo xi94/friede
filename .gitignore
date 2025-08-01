@@ -1,0 +1,5 @@
+build/
+.talon/
+.projectile
+*.obj
+moc/
