@@ -22,6 +22,7 @@
 #include <QThread>
 #include <QWidget>
 
+#include "updater.hpp"
 #include "riot/client.hpp"
 #include "ui/login_worker.hpp"
 
@@ -102,6 +103,8 @@ class Window final : public QMainWindow {
     toml::parse_result config;
     QThread worker_thread;
     QMap<riot::Game, QPixmap> original_banner_pixmaps;
+
+    updater::Updater *updater_;
 
     // Event Handlers
     auto handle_home_button_click() -> void;

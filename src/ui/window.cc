@@ -23,7 +23,6 @@
 #include <iostream>
 #include <string>
 
-#include <winsparkle/winsparkle.h>
 
 namespace ui {
 
@@ -167,6 +166,9 @@ Window::Window(QWidget *parent)
     button_add_account->hide();
     button_remove_account->hide();
     widget_top_bar->show();
+
+    updater_ = new updater::Updater(this);
+    updater_->checkForUpdates(); // Check for updates on startup
 }
 
 Window::~Window() {
@@ -187,7 +189,9 @@ void Window::on_login_finished(bool success, const QString &message) {
     }
 }
 
-void Window::on_check_for_updates_clicked() { win_sparkle_check_update_with_ui(); }
+void Window::on_check_for_updates_clicked() {
+        updater_->checkForUpdates();
+}
 
 auto Window::handle_login_button_click() -> void {
     const int row = table_accounts->currentRow();
@@ -443,11 +447,7 @@ auto Window::setup_accounts_page() -> void {
             const auto note = table->get("note") ? table->get("note")->value_or(""sv) : ""sv;
             const auto username = table->get("username") ? table->get("username")->value_or(""sv) : ""sv;
             const auto password = table->get("password") ? table->get("password")->value_or(""sv) : ""sv;
-            if (username.empty() || password.empty()) {
-                QMessageBox::information(this, "Skipping Account",
-                                         "An account in the configuration is missing a username or password and will be skipped.");
-                continue;
-            }
+            if (username.empty() || password.empty()) continue;
 
             const int row = table_accounts->rowCount();
             table_accounts->insertRow(row);
@@ -519,7 +519,6 @@ auto Window::save_config_to_file() -> bool {
 
         ofs << config;
         ofs.close();
-        QMessageBox::information(this, "Save Successful", "Configuration saved successfully to:\n" + config_path);
     } catch (const std::exception &e) {
         QMessageBox::critical(this, "Save Error", "An exception occurred during configuration write: " + QString(e.what()));
         return false;

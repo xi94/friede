@@ -46,7 +46,7 @@ auto add_build_dependencies(const talon::arguments &args, talon::workspace *work
     workspace->add_includes("thirdparty/include");
     workspace->add_library_includes("thirdparty/lib");
 
-    workspace->add_library_files("tomlplusplus", "winsparkle");
+    workspace->add_library_files("tomlplusplus");
 
     //
     // qt (pls move this to thirdparty if possible :D)
@@ -57,7 +57,7 @@ auto add_build_dependencies(const talon::arguments &args, talon::workspace *work
     workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtWidgets");
     workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtGui");
 
-    workspace->add_library_files("Qt6Widgets", "Qt6Core", "Qt6Gui");
+    workspace->add_library_files("Qt6Widgets", "Qt6Core", "Qt6Gui", "Qt6Network");
     workspace->add_library_includes("C:\\dev\\qt-build\\qtbase\\lib");
 }
 
@@ -102,6 +102,7 @@ auto maybe_deploy_qt_deps(const bool needs_deployment) -> void {
 
 auto setup_moc_files() -> void {
     fs::create_directories("moc");
+    generate_moc_file("ui/updater.hpp");
     generate_moc_file("ui/window.hpp");
     generate_moc_file("ui/login_worker.hpp");
     generate_moc_file("ui/add_account_dialog.hpp");
