@@ -337,6 +337,7 @@ auto Window::setup_common_ui() -> void {
                                 "20px; } QMenu::item:selected { background-color: #404040; }");
 
     auto *action_check_for_updates = options_menu->addAction("check for updates");
+    action_check_for_updates->setIcon(QIcon::fromTheme("emblem-synchronized"));
     connect(action_check_for_updates, &QAction::triggered, this, &Window::on_check_for_updates_clicked);
 
     auto *action_open_directory = options_menu->addAction("open config directory");
@@ -348,6 +349,7 @@ auto Window::setup_common_ui() -> void {
     options_menu->addSeparator();
 
     auto *action_close = options_menu->addAction("close");
+
     action_close->setIcon(QIcon::fromTheme("window-close"));
 
     button_top_bar_options->setMenu(options_menu);

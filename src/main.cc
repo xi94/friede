@@ -7,6 +7,8 @@
 // FIXME theres a strange bug that occurs rarely, where if you delete an account, and i think its if you close the program instantly, the
 // file actually doesnt save, and the account remains
 
+// TODO create installer that will unzip and install the files, winsparkle will be monitoring for this, and then downloading the installer
+// from a github release and running it
 #include <winsparkle/winsparkle.h>
 
 auto main(int argc, char *argv[]) -> int {
