@@ -3,3 +3,4 @@ build/
 .projectile
 *.obj
 moc/
+Output/
