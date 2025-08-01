@@ -3,19 +3,18 @@
     <channel>
         <title>Friede Changelog</title>
         <item>
-            <title>Version 1.1.0</title>
+            <title>Version 1.0.0</title>
             <pubDate>Fri, 01 Aug 2025 17:00:00 +0200</pubDate>
             <description>
                 <![CDATA[
                     <ul>
-                        <li>Added new feature X.</li>
-                        <li>Fixed bug Y.</li>
+                        <li>Added nothing.</li>
                     </ul>
                 ]]>
             </description>
             <enclosure
-                url="https://github.com/your_username/your_repository/releases/download/v1.1.0/friede.exe"
-                sparkle:version="1.1.0"
+                url="https://github.com/xi94/friede/releases/download/v1.0.0/friede.zip"
+                sparkle:version="1.0.0"
                 type="application/octet-stream" />
         </item>
     </channel>
