@@ -13,7 +13,7 @@
                 ]]>
             </description>
             <enclosure
-                url="https://github.com/xi94/friede/releases/download/1.1.0/friede-setup-v1.1.1.exe"
+                url="https://github.com/xi94/friede/releases/download/1.1.1/friede-setup-v1.1.1.exe"
                 sparkle:version="1.1.1"
                 type="application/octet-stream" />
         </item>
