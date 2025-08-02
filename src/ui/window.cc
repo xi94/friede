@@ -23,7 +23,6 @@
 #include <iostream>
 #include <string>
 
-
 namespace ui {
 
 static auto get_config_path() -> QString {
@@ -168,7 +167,7 @@ Window::Window(QWidget *parent)
     widget_top_bar->show();
 
     updater_ = new updater::Updater(this);
-    updater_->checkForUpdates(); // Check for updates on startup
+    updater_->check_for_updates();
 }
 
 Window::~Window() {
@@ -189,9 +188,7 @@ void Window::on_login_finished(bool success, const QString &message) {
     }
 }
 
-void Window::on_check_for_updates_clicked() {
-        updater_->checkForUpdates();
-}
+void Window::on_check_for_updates_clicked() { updater_->check_for_updates(); }
 
 auto Window::handle_login_button_click() -> void {
     const int row = table_accounts->currentRow();

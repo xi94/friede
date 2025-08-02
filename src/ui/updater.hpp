@@ -2,13 +2,10 @@
 
 #include <QObject>
 
-// Forward declarations
 class QNetworkAccessManager;
 class QNetworkReply;
 class QUrl;
 class QWidget;
-
-// TODO yeah this is ai generated im tired, fix this tomorrow :D
 
 namespace updater {
 
@@ -32,14 +29,14 @@ class Updater final : public QObject {
     /**
      * @brief Begins the process of checking for a new version.
      */
-    void checkForUpdates();
+    auto check_for_updates() -> void;
 
   private slots:
-    void onUpdateCheckFinished(QNetworkReply *reply);
-    void onInstallerDownloadFinished();
+    auto on_update_check_finished(QNetworkReply *reply) -> void;
+    auto on_installer_download_finished() -> void;
 
   private:
-    void downloadAndRunInstaller(const QUrl &url);
+    auto download_and_run_installer(const QUrl &url) -> void;
 
     QNetworkAccessManager *network_manager_;
     QNetworkReply *installer_download_reply_ = nullptr;

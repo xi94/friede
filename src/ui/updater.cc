@@ -4,112 +4,132 @@
 #include <QDir>
 #include <QFile>
 #include <QMessageBox>
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkReply>
-#include <QtNetwork/QNetworkRequest>
 #include <QProcess>
 #include <QProgressDialog>
 #include <QUrl>
+#include <QVersionNumber>
 #include <QXmlStreamReader>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkRequest>
 
 #include <QDebug>
 
 namespace updater {
 
-Updater::Updater(QWidget *parent) : QObject(parent), parent_widget_(parent) {
+Updater::Updater(QWidget *parent)
+    : QObject(parent)
+    , parent_widget_(parent) {
     network_manager_ = new QNetworkAccessManager(this);
 }
 
-void Updater::checkForUpdates() {
-    const QUrl url("https://raw.githubusercontent.com/xi94/friede/main/appcast.xml");
-    QNetworkRequest request(url);
+auto Updater::check_for_updates() -> void {
+    const auto url = QUrl{"https://raw.githubusercontent.com/xi94/friede/main/appcast.xml"};
+    const auto request = QNetworkRequest{url};
+
     QNetworkReply *reply = network_manager_->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { onUpdateCheckFinished(reply); });
+    connect(reply, &QNetworkReply::finished, this, [this, reply] { on_update_check_finished(reply); });
 }
 
-void Updater::onUpdateCheckFinished(QNetworkReply *reply) {
-    if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "Update check failed:" << reply->errorString();
+auto Updater::on_update_check_finished(QNetworkReply *reply) -> void {
+    const bool reply_has_error = reply->error() != QNetworkReply::NoError;
+    if (reply_has_error) {
+        QMessageBox::critical(parent_widget_, "Updater", "Failed to check for updates: " + reply->errorString());
         reply->deleteLater();
         return;
     }
 
-    QString latest_version;
-    QUrl installer_url;
+    //
+    // parse installer url and latest version from the appcast xml
+    //
 
-    QXmlStreamReader xml(reply->readAll());
+    QUrl installer_url;
+    QString latest_version;
+
+    auto xml = QXmlStreamReader{reply->readAll()};
     while (!xml.atEnd() && !xml.hasError()) {
         xml.readNext();
-        if (xml.isStartElement() && xml.name().toString() == "enclosure") {
+
+        const bool current_element_is_enclosure = (xml.isStartElement() && xml.name().toString() == "enclosure");
+        if (current_element_is_enclosure) {
+            installer_url = QUrl{xml.attributes().value("url").toString()};
             latest_version = xml.attributes().value("sparkle:version").toString();
-            installer_url = QUrl(xml.attributes().value("url").toString());
             break;
         }
     }
 
     reply->deleteLater();
 
-    if (!latest_version.isEmpty() && latest_version > QCoreApplication::applicationVersion()) {
-        QMessageBox::StandardButton answer = QMessageBox::information(
-            parent_widget_, "Update Available",
-            "A new version (" + latest_version + ") is available. Would you like to download and install it?",
-            QMessageBox::Yes | QMessageBox::No);
+    //
+    // compare versions and prompt user to update if newer
+    //
 
-        if (answer == QMessageBox::Yes) {
-            downloadAndRunInstaller(installer_url);
-        }
-    } else {
-        // This is a good place to inform the user they are up-to-date
-        // if they triggered the check manually from a menu.
-        qDebug() << "Application is up to date.";
+    if (latest_version.isEmpty()) {
+        QMessageBox::critical(parent_widget_, "Updater", "Failed to get latest version");
+        return;
+    }
+
+    const auto current_version = QVersionNumber::fromString(QCoreApplication::applicationVersion());
+    if (current_version < QVersionNumber::fromString(latest_version)) {
+        const auto flags = QMessageBox::Yes | QMessageBox::No;
+        const auto message = QString{"A new version (%1) is available, would you like to download an install it?"}.arg(latest_version);
+        QMessageBox::StandardButton response = QMessageBox::information(parent_widget_, "Update Available", message, flags);
+
+        const bool wants_to_update = response == QMessageBox::Yes;
+        if (wants_to_update) download_and_run_installer(installer_url);
     }
 }
 
-void Updater::downloadAndRunInstaller(const QUrl &url) {
-    QNetworkRequest request(url);
+auto Updater::download_and_run_installer(const QUrl &url) -> void {
+    const auto request = QNetworkRequest{url};
     installer_download_reply_ = network_manager_->get(request);
 
-    auto *progress_dialog = new QProgressDialog("Downloading update...", "Cancel", 0, 100, parent_widget_);
+    auto *progress_dialog = new QProgressDialog{"Downloading update...", "Cancel", 0, 100, parent_widget_};
+    progress_dialog->setAttribute(Qt::WA_DeleteOnClose);
     progress_dialog->setWindowModality(Qt::WindowModal);
     progress_dialog->show();
 
-    connect(installer_download_reply_, &QNetworkReply::downloadProgress, this,
-            [=](qint64 bytesReceived, qint64 bytesTotal) {
-                if (bytesTotal > 0) {
-                    progress_dialog->setValue(static_cast<int>((bytesReceived * 100) / bytesTotal));
-                }
-            });
+    connect(installer_download_reply_, &QNetworkReply::downloadProgress, this, [=](qint64 bytes_received, qint64 bytes_total) -> void {
+        if (bytes_total <= 0) return;
 
-    connect(installer_download_reply_, &QNetworkReply::finished, this, &Updater::onInstallerDownloadFinished);
+        const qint64 download_percentage = (bytes_received * 100) / bytes_total;
+        progress_dialog->setValue(static_cast<int>(download_percentage));
+    });
+
+    connect(installer_download_reply_, &QNetworkReply::finished, this, &Updater::on_installer_download_finished);
     connect(progress_dialog, &QProgressDialog::canceled, installer_download_reply_, &QNetworkReply::abort);
 }
 
-void Updater::onInstallerDownloadFinished() {
-    if (installer_download_reply_->error() != QNetworkReply::NoError) {
-        // Don't show an error if the user canceled the download.
-        if (installer_download_reply_->error() != QNetworkReply::OperationCanceledError) {
-            QMessageBox::critical(parent_widget_, "Download Failed",
-                                  "Failed to download the update: " + installer_download_reply_->errorString());
+auto Updater::on_installer_download_finished() -> void {
+    const bool download_reply_has_error = installer_download_reply_->error() != QNetworkReply::NoError;
+    if (download_reply_has_error) {
+        const bool user_cancelled_download = installer_download_reply_->error() == QNetworkReply::OperationCanceledError;
+        if (!user_cancelled_download) {
+            const auto message = QString{"Failed to download the update: %1"}.arg(installer_download_reply_->errorString());
+            QMessageBox::critical(parent_widget_, "Updater", message);
         }
+
         installer_download_reply_->deleteLater();
         return;
     }
 
+    //
+    // attempt to run the downloaded installer
+    //
 
-    QString temp_path = QDir::tempPath() + "/friede-setup.exe";
-    QFile temp_file(temp_path);
-    if (temp_file.open(QIODevice::WriteOnly)) {
-        temp_file.write(installer_download_reply_->readAll());
-        temp_file.close();
+    const QString filename = QFileInfo{installer_download_reply_->url().path()}.fileName();
+    const QString temporary_installer_path = QDir::tempPath() + "/" + filename;
+    if (auto file = QFile{temporary_installer_path}; file.open(QIODevice::WriteOnly)) {
+        file.write(installer_download_reply_->readAll());
+        file.close();
 
         QStringList args;
         args << "/SILENT" << "/DIR=" + QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
 
-        // Start the installer with the arguments and close this application.
-        QProcess::startDetached(temp_path, args);
+        QProcess::startDetached(temporary_installer_path, args);
         QCoreApplication::quit();
     } else {
-        QMessageBox::critical(parent_widget_, "Error", "Could not save the downloaded installer.");
+        QMessageBox::critical(parent_widget_, "Updater", "Error: could not save the downloaded installer");
     }
 
     installer_download_reply_->deleteLater();
