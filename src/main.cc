@@ -1,9 +1,6 @@
 #include "ui/window.hpp"
-#include <QApplication>
-#include <QTimer>
 
-#include <QDebug>
-#include <iostream>
+#include <QApplication>
 
 auto main(int argc, char *argv[]) -> int {
     auto app = QApplication{argc, argv};
