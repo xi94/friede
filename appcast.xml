@@ -3,7 +3,7 @@
     <channel>
         <title>Friede Changelog</title>
         <item>
-            <title>Version 1.1.1</title>
+            <title>Version 1.1.2</title>
             <pubDate>Fri, 01 Aug 2025 19:50:00 +0200</pubDate>
             <description>
                 <![CDATA[
@@ -13,8 +13,8 @@
                 ]]>
             </description>
             <enclosure
-                url="https://github.com/xi94/friede/releases/download/1.1.1/friede-setup-v1.1.1.exe"
-                sparkle:version="1.1.1"
+                url="https://github.com/xi94/friede/releases/download/1.1.2/friede-setup-v1.1.2.exe"
+                sparkle:version="1.1.2"
                 type="application/octet-stream" />
         </item>
     </channel>
