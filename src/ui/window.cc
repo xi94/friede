@@ -9,6 +9,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QMessageBox>
@@ -344,8 +345,10 @@ auto Window::setup_common_ui() -> void {
     auto *action_open_directory = options_menu->addAction("open config directory");
     action_open_directory->setIcon(QIcon::fromTheme("folder-open"));
 
-    // FIXME this is really slow in release build for some reason? the terminal opens for 5 seconds with no background, then it opens
-    connect(action_open_directory, &QAction::triggered, this, [] { std::system("explorer %appdata%\\friede"); });
+    connect(action_open_directory, &QAction::triggered, this, [] {
+        const QString friede_data_directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+        QDesktopServices::openUrl(QUrl::fromLocalFile(friede_data_directory));
+    });
 
     options_menu->addSeparator();
 
