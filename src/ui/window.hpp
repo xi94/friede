@@ -22,6 +22,7 @@
 #include <QThread>
 #include <QWidget>
 
+#include "core/config.hpp"
 #include "riot/client.hpp"
 #include "ui/login_worker.hpp"
 #include "updater.hpp"
@@ -71,6 +72,8 @@ class Window final : public QMainWindow {
     /// @brief Slot to handle the result of a completed login attempt.
     auto on_login_finished(bool success, const QString &message) -> void;
 
+    auto refresh_accounts_table() -> void;
+
   private:
     // UI Widgets
     QStackedWidget *widget_main_stacked_;
@@ -94,15 +97,16 @@ class Window final : public QMainWindow {
 
     // App management
     Updater *updater_;
+    core::Config *config_;
 
     // State & Data
     riot::Game current_game_;
     QString banners_dir_;
     QString game_icons_dir_;
     QString config_path_;
-    toml::parse_result config_;
     QThread worker_thread_;
     QMap<riot::Game, QPixmap> original_banner_pixmaps_;
+    QVector<core::Account> current_accounts_;
 
     // Event Handlers
     auto handle_home_button_click() -> void;
@@ -119,7 +123,7 @@ class Window final : public QMainWindow {
     auto setup_accounts_page() -> void;
 
     // Data Management
-    auto save_config_to_file() -> bool;
+    auto populate_accounts_table() -> void;
     auto save_account_data(int row, int column, const QString &new_value) -> void;
     auto add_account_to_config(const QString &note, const QString &username, const QString &password) -> void;
 

@@ -129,6 +129,7 @@ auto Updater::on_installer_download_finished() -> void {
         QStringList args;
         args << "/SILENT" << "/DIR=" + QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
 
+        // here we run the installer and quit our application, so that it can get replaced and launched by the installer
         QProcess::startDetached(temporary_installer_path, args);
         QCoreApplication::quit();
     } else {

@@ -4,6 +4,7 @@
 
 #include "ui/window.hpp"
 
+#include "core/account.hpp"
 #include "ui/add_account_dialog.hpp"
 #include "ui/password_table_widget.hpp"
 
@@ -26,41 +27,6 @@
 
 namespace ui {
 
-static auto get_config_path() -> QString {
-    const QString appdata_path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    if (appdata_path.isEmpty()) {
-        QMessageBox::critical(nullptr, "Configuration Error", "Failed to get AppData directory path. Cannot initialize configuration.");
-        return QString{};
-    }
-
-    const auto appdata_dir = QDir{appdata_path};
-    if (!appdata_dir.exists() && !appdata_dir.mkpath(".")) {
-        QMessageBox::critical(nullptr, "Configuration Error", "Failed to create configuration directory: " + appdata_path);
-        return QString{};
-    }
-
-    const QString config_file_path = appdata_dir.absoluteFilePath("configuration.toml");
-    if (QFile::exists(config_file_path)) return config_file_path;
-
-    auto config_file = QFile{config_file_path};
-    if (!config_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(nullptr, "Configuration Error", "failed to create config: " + config_file_path);
-        return QString{};
-    }
-
-    auto stream = QTextStream{&config_file};
-    stream << "# Friede Configuration File\n";
-    stream << "# This file stores account information and application settings\n\n";
-    stream << "[[accounts]]\n";
-    stream << "# Example account entry:\n";
-    stream << "# note = \"Main Account\"\n";
-    stream << "# username = \"your_username\"\n";
-    stream << "# password = \"your_password\"\n\n";
-
-    config_file.close();
-    return config_file_path;
-}
-
 Window::Window(QWidget *parent)
     : QMainWindow{parent}
     , widget_main_stacked_{new QStackedWidget{this}}
@@ -78,14 +44,13 @@ Window::Window(QWidget *parent)
     , button_top_bar_options_{new QPushButton{"", widget_top_bar_}}
     , widget_bottom_bar_{new QWidget{this}}
     , updater_{new Updater{this}}
+    , config_{new core::Config{this}}
     , label_game_icon_placeholder_{new QLabel{widget_bottom_bar_}}
     , button_login_{new QPushButton{"Login", widget_bottom_bar_}}
     , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}
     , button_remove_account_{new QPushButton{"Remove Account", widget_bottom_bar_}}
     , banners_dir_{QCoreApplication::applicationDirPath() + "/banners/"}
-    , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"}
-    , config_path_{get_config_path()}
-    , config_{config_path_.isEmpty() ? toml::parse_result{} : toml::parse_file(config_path_.toStdString())} {
+    , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"} {
 
     //
     // login worker
@@ -342,9 +307,9 @@ auto Window::setup_common_ui() -> void {
 
     auto *action_open_directory = options_menu->addAction("open config directory");
     action_open_directory->setIcon(QIcon::fromTheme("folder-open"));
-    connect(action_open_directory, &QAction::triggered, this, [] {
-        const QString friede_data_directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-        QDesktopServices::openUrl(QUrl::fromLocalFile(friede_data_directory));
+    connect(action_open_directory, &QAction::triggered, this, [this] {
+        const QString config_dir = config_->get_config_directory_path();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(config_dir));
     });
 
     options_menu->addSeparator();
@@ -380,8 +345,6 @@ auto Window::setup_common_ui() -> void {
         "none; } QPushButton:hover { background-color: #4a4a4a; } QPushButton:pressed { background-color: #c0392b; } QPushButton:disabled "
         "{ background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
 
-    bottom_bar_layout->addWidget(button_login_);
-    bottom_bar_layout->addWidget(button_add_account_);
     bottom_bar_layout->addWidget(button_remove_account_);
     bottom_bar_layout->addStretch();
 
@@ -418,11 +381,6 @@ auto Window::setup_home_page() -> void {
 }
 
 auto Window::setup_accounts_page() -> void {
-    if (!config_) {
-        QMessageBox::critical(this, "Configuration Error", "Failed to parse configuration.toml");
-        return;
-    }
-
     auto *accounts_layout = new QVBoxLayout{widget_accounts_content_};
     table_accounts_->setHorizontalHeaderLabels({"Note", "Username", "Password"});
     table_accounts_->horizontalHeader()->setStretchLastSection(true);
@@ -432,35 +390,34 @@ auto Window::setup_accounts_page() -> void {
     table_accounts_->setEditTriggers(QAbstractItemView::DoubleClicked);
     table_accounts_->verticalHeader()->setVisible(false);
 
-    const auto accounts = config_["accounts"];
-    if (accounts && accounts.is_array()) {
-        for (const auto &account : *accounts.as_array()) {
-            if (!account.is_table()) continue;
-
-            const auto table = account.as_table();
-            const auto note = table->get("note") ? table->get("note")->value_or(""sv) : ""sv;
-            const auto username = table->get("username") ? table->get("username")->value_or(""sv) : ""sv;
-            const auto password = table->get("password") ? table->get("password")->value_or(""sv) : ""sv;
-            if (username.empty() || password.empty()) continue;
-
-            const int row = table_accounts_->rowCount();
-            table_accounts_->insertRow(row);
-            table_accounts_->setItem(row, 0, new QTableWidgetItem{note.data()});
-            table_accounts_->setItem(row, 1, new QTableWidgetItem{username.data()});
-
-            auto *password_item = new Password_Table_Widget;
-            password_item->setData(Qt::DisplayRole, QString("************"));
-            password_item->setData(Qt::UserRole, QString(password.data()));
-
-            table_accounts_->setItem(row, 2, password_item);
-        }
-    }
-
     QObject::connect(table_accounts_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
     accounts_layout->addWidget(label_accounts_);
     accounts_layout->addWidget(table_accounts_);
 
     QObject::connect(table_accounts_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
+
+    refresh_accounts_table();
+}
+
+auto Window::refresh_accounts_table() -> void {
+    table_accounts_->blockSignals(true);
+
+    table_accounts_->setRowCount(0);
+    current_accounts_ = config_->get_accounts();
+
+    for (const auto &account : current_accounts_) {
+        const int row = table_accounts_->rowCount();
+        table_accounts_->insertRow(row);
+        table_accounts_->setItem(row, 0, new QTableWidgetItem{account.note});
+        table_accounts_->setItem(row, 1, new QTableWidgetItem{account.username});
+
+        auto *password_item = new Password_Table_Widget;
+        password_item->setData(Qt::DisplayRole, QString("************"));
+        password_item->setData(Qt::UserRole, account.password);
+        table_accounts_->setItem(row, 2, password_item);
+    }
+
+    table_accounts_->blockSignals(false);
     handle_table_selection_changed();
 }
 
@@ -498,172 +455,72 @@ auto Window::handle_table_selection_changed() -> void {
     button_remove_account_->setEnabled(row_is_selected);
 }
 
-auto Window::save_config_to_file() -> bool {
-    if (!config_) {
-        QMessageBox::critical(this, "Save Error", "Configuration object is invalid, cannot save.");
-        return false;
-    }
-
-    try {
-        auto ofs = std::ofstream{config_path_.toStdString()};
-        if (!ofs.is_open()) {
-            QMessageBox::critical(this, "Save Error", "Failed to open configuration for writing: " + config_path_);
-            return false;
-        }
-
-        ofs << config_;
-        ofs.close();
-    } catch (const std::exception &e) {
-        QMessageBox::critical(this, "Save Error", "An exception occurred during configuration write: " + QString(e.what()));
-        return false;
-    }
-
-    return true;
-}
-
 auto Window::handle_add_account_button_click() -> void {
     Add_Account_Dialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
-        const auto note = dialog.get_note();
-        const auto username = dialog.get_username();
-        const auto password = dialog.get_password();
-        if (username == "" || password == "") {
-            QMessageBox::critical(this, "Add Account", "Failed to add account.\nEither the username or the password was empty.");
+        core::Account new_account;
+        new_account.note = dialog.get_note();
+        new_account.username = dialog.get_username();
+        new_account.password = dialog.get_password();
+        if (new_account.username.isEmpty() || new_account.password.isEmpty()) {
+            QMessageBox::critical(this, "Add Account", "Username and password cannot be empty.");
             return;
         }
 
-        add_account_to_config(note, username, password);
+        if (config_->add_account(new_account)) {
+            refresh_accounts_table();
+            table_accounts_->setCurrentCell(table_accounts_->rowCount() - 1, 0);
+        } else {
+            QMessageBox::critical(this, "Add Account", "Failed to save the new account.");
+        }
     }
 }
 
 auto Window::handle_remove_account_button_click() -> void {
-    QList<QTableWidgetItem *> selected_items = table_accounts_->selectedItems();
-    if (selected_items.isEmpty()) {
-        QMessageBox::critical(this, "Delete Account", "Please select an account to delete.");
+    const int current_row = table_accounts_->currentRow();
+    if (current_row == -1) {
+        QMessageBox::warning(this, "Delete Account", "Please select an account to delete.");
         return;
     }
 
-    const int current_row = selected_items.first()->row();
-    auto account_to_delete_name = QString{"the selected account"};
-    if (table_accounts_->item(current_row, 1)) { account_to_delete_name = table_accounts_->item(current_row, 1)->text(); }
-
-    const auto reply_flags = QMessageBox::Yes | QMessageBox::No;
-    const auto confirmation = QString{"Are you sure you want to delete '%1'?"}.arg(account_to_delete_name);
-    const auto reply = QMessageBox::warning(this, "Confirm Deletion", confirmation, reply_flags);
+    const auto &account_to_delete = current_accounts_[current_row];
+    const auto confirmation = QString{"Are you sure you want to delete '%1'?"}.arg(account_to_delete.username);
+    const auto reply = QMessageBox::warning(this, "Confirm Deletion", confirmation, QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::No) return;
 
-    auto *accounts_array = config_.table().get_as<toml::array>("accounts");
-    if (!accounts_array) {
-        QMessageBox::critical(this, "Deletion Error", "TOML config does not contain 'accounts', cannot delete.");
-        return;
+    if (config_->remove_account(current_row)) {
+        refresh_accounts_table();
+    } else {
+        QMessageBox::critical(this, "Deletion Error", "Failed to remove the account from the configuration file.");
     }
-
-    if (current_row < 0 || static_cast<size_t>(current_row) >= accounts_array->size()) {
-        QMessageBox::critical(this, "Deletion Error", "Invalid row index for deletion in TOML: " + QString::number(current_row));
-        return;
-    }
-
-    accounts_array->erase(accounts_array->begin() + current_row);
-    if (!save_config_to_file()) {
-        QMessageBox::critical(this, "Save Error", "Failed to save configuration after account deletion.");
-        return;
-    }
-
-    table_accounts_->blockSignals(true);
-    table_accounts_->removeRow(current_row);
-    table_accounts_->blockSignals(false);
-
-    reset_account_selection();
-}
-
-auto Window::save_account_data(int row, int column, const QString &new_value) -> void {
-    auto *accounts_array = config_.table().get_as<toml::array>("accounts");
-    if (!accounts_array) {
-        QMessageBox::critical(this, "Save Error", "TOML config does not contain 'accounts'.");
-        return;
-    }
-
-    if (row < 0 || static_cast<size_t>(row) >= accounts_array->size()) {
-        QMessageBox::critical(this, "Save Error", "Invalid row bounds for saving: " + QString::number(row));
-        return;
-    }
-
-    auto *table = accounts_array->at(row).as_table();
-    if (!table) {
-        QMessageBox::critical(this, "Save Error", "Account data at row " + QString::number(row) + " is not a valid table structure.");
-        return;
-    }
-
-    auto key_to_update = "";
-    if (column == 0) key_to_update = "note";
-    if (column == 1) key_to_update = "username";
-    if (column == 2) key_to_update = "password";
-
-    auto value_to_write = new_value.toStdString();
-    table->insert_or_assign(key_to_update, value_to_write);
-
-    save_config_to_file();
-}
-
-auto Window::add_account_to_config(const QString &note, const QString &username, const QString &password) -> void {
-    if (!config_) {
-        QMessageBox::critical(this, "Configuration Error", "TOML config is not valid, cannot add account.");
-        return;
-    }
-
-    auto *accounts_array = config_.table().get_as<toml::array>("accounts");
-    if (!accounts_array) {
-        config_.table().insert("accounts", toml::array{});
-
-        accounts_array = config_.table().get_as<toml::array>("accounts");
-        if (!accounts_array) {
-            QMessageBox::critical(this, "Configuration Error", "Failed to create 'accounts' array in TOML config.");
-            return;
-        }
-    }
-
-    toml::table new_toml_table;
-    new_toml_table.insert("note", note.toStdString());
-    new_toml_table.insert("username", username.toStdString());
-    new_toml_table.insert("password", password.toStdString());
-    accounts_array->push_back(new_toml_table);
-
-    save_config_to_file();
-    table_accounts_->blockSignals(true);
-
-    const int new_qt_row = table_accounts_->rowCount();
-    table_accounts_->insertRow(new_qt_row);
-
-    auto *note_item = new QTableWidgetItem{note};
-    table_accounts_->setItem(new_qt_row, 0, note_item);
-
-    auto *username_item = new QTableWidgetItem{username};
-    table_accounts_->setItem(new_qt_row, 1, username_item);
-
-    auto *password_item = new Password_Table_Widget;
-    password_item->setData(Qt::DisplayRole, QString("************"));
-    password_item->setData(Qt::UserRole, password);
-
-    table_accounts_->setItem(new_qt_row, 2, password_item);
-    table_accounts_->blockSignals(false);
-    table_accounts_->setCurrentCell(new_qt_row, 0);
 }
 
 auto Window::handle_account_cell_updated(int row, int column) -> void {
-    table_accounts_->blockSignals(true);
+    if (row < 0 || row >= current_accounts_.size()) return;
+    auto updated_account = current_accounts_[row];
 
-    if (auto *item = table_accounts_->item(row, column)) {
-        const auto text = item->text();
+    auto *item = table_accounts_->item(row, column);
+    if (!item) return;
 
-        if (column == 2) {
-            item->setData(Qt::UserRole, text);
-            item->setText("************");
-        }
-
-        save_account_data(row, column, text);
+    const QString new_value = item->text();
+    switch (column) {
+    case 0: updated_account.note = new_value; break;
+    case 1: updated_account.username = new_value; break;
+    case 2:
+        updated_account.password = new_value;
+        table_accounts_->blockSignals(true);
+        item->setData(Qt::UserRole, new_value);
+        item->setText("************");
+        table_accounts_->blockSignals(false);
+        break;
     }
 
-    table_accounts_->blockSignals(false);
+    if (!config_->update_account(row, updated_account)) {
+        QMessageBox::critical(this, "Save Error", "Failed to save changes to the account.");
+        refresh_accounts_table();
+    } else {
+        current_accounts_[row] = updated_account;
+    }
 }
 
 auto Window::reset_account_selection() -> void { table_accounts_->setCurrentCell(-1, -1); }

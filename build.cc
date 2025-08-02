@@ -92,8 +92,9 @@ auto maybe_deploy_qt_deps(const bool needs_deployment) -> void {
 
 auto setup_moc_files() -> void {
     fs::create_directories("moc");
-    generate_moc_file("ui/updater.hpp");
     generate_moc_file("ui/window.hpp");
+    generate_moc_file("ui/updater.hpp");
+    generate_moc_file("core/config.hpp");
     generate_moc_file("ui/login_worker.hpp");
     generate_moc_file("ui/add_account_dialog.hpp");
 }
