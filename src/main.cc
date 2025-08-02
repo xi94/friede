@@ -6,7 +6,7 @@ auto main(int argc, char *argv[]) -> int {
     auto app = QApplication{argc, argv};
 
     app.setApplicationName("friede");
-    app.setApplicationVersion("1.1.3");
+    app.setApplicationVersion("1.1.4");
 
     auto window = ui::Window{};
     window.show();
