@@ -10,7 +10,7 @@ AppId={{11A7E9A3-9E3E-4A8E-A329-3B2E0533A899}
 AppName=Friede
 
 ; The version of this specific build. You will update this for each new release.
-AppVersion=1.1.2
+AppVersion=1.1.3
 
 ; Default directory name. For portable apps, this is less critical but still good practice.
 DefaultDirName={autopf}\Friede
@@ -20,7 +20,7 @@ DefaultGroupName=Friede
 DisableProgramGroupPage=yes
 
 ; The name of the final installer executable.
-OutputBaseFilename=friede-setup-v1.1.2
+OutputBaseFilename=friede-setup-v1.1.3
 
 ; Compression settings for a smaller installer size.
 Compression=lzma
