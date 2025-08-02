@@ -3,19 +3,9 @@
 #include <talon/talon.hpp>
 #include <vector>
 
-// Use the std::filesystem library for robust path manipulation
 namespace fs = std::filesystem;
 using namespace std::literals;
 
-/**
- * @brief Runs Qt's Meta-Object Compiler (MOC) on a target header file.
- *
- * This function constructs and executes the command to generate a moc_*.cpp file
- * from a given header. The output is placed in the 'moc/' directory.
- *
- * @param target_file The path to the header file, relative to the 'src/' directory.
- * Example: "ui/window.hpp".
- */
 void generate_moc_file(const std::string_view target_file) {
     const fs::path input_path(target_file);
 
