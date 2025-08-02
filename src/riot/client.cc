@@ -1,5 +1,5 @@
 // =================================================================================
-// client.cc
+// riot/client.cc
 // =================================================================================
 
 #include "client.hpp"
@@ -34,7 +34,7 @@ auto Client::create() -> Result<Client> {
 }
 
 auto Client::connect_to_window(const std::chrono::seconds timeout) -> bool {
-    uia_ = std::make_unique<UIA_Application>(L"Riot Client", timeout);
+    uia_ = std::make_unique<platform::UIA_Application>(L"Riot Client", timeout);
     return uia_->is_ready();
 }
 
@@ -51,24 +51,19 @@ auto Client::is_alive() const -> bool {
 
 auto Client::is_ready() const -> bool { return uia_ && uia_->is_ready(); }
 
-auto Client::login(const std::string_view username, const std::string_view password, bool remember_me) -> UIA_Result<bool> {
-    if (!is_ready()) {
-        const auto message = L"UIA application not connected.";
-        return std::unexpected(UIA_Operation_Error{UIA_Error_Code::AUTOMATION_INIT_FAILED, message});
-    }
+auto Client::login(const std::string_view username, const std::string_view password, bool remember_me) -> Result<void> {
+    if (!is_ready()) { return std::unexpected(Client_Error::Automation_Failed); }
 
     const auto wide_username = std::wstring{username.begin(), username.end()};
     const auto wide_password = std::wstring{password.begin(), password.end()};
 
-    if (auto result = uia_->set_text_in_field(L"username", wide_username); !result) return result;
-    if (auto result = uia_->set_text_in_field(L"password", wide_password); !result) return result;
-    if (auto result = uia_->toggle_checkbox(L"remember-me", remember_me); !result) return result;
+    if (!uia_->set_text_in_field(L"username", wide_username)) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->set_text_in_field(L"password", wide_password)) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->toggle_checkbox(L"remember-me", remember_me)) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->set_focus_to_element(L"password")) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->send_key_to_window(VK_RETURN)) return std::unexpected(Client_Error::Automation_Failed);
 
-    // the login button has no unique id, only a runtime index that isnt static, so instead, lets...
-    // set focus to the password element so that we can login by sending an enter key press to the window
-    if (auto result = uia_->set_focus_to_element(L"password"); !result) return result;
-
-    return uia_->send_key_to_window(VK_RETURN);
+    return {};
 }
 
 auto Client::find_client_path() -> Result<std::string> {

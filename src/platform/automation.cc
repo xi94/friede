@@ -1,8 +1,8 @@
 // =================================================================================
-// uia.cc
+// platform/automation.cc
 // =================================================================================
 
-#include "uia.hpp"
+#include "automation.hpp"
 
 #include <comutil.h>  // for _variant_t, _bstr_t
 #include <iostream>   // for std::wcout, std::wcerr
@@ -10,7 +10,7 @@
 #include <thread>     // for std::this_thread::sleep_for
 #include <winerror.h> // for HRESULT codes like S_FALSE
 
-namespace uia {
+namespace platform {
 
 template <Com_Interface T>
 Com_Pointer<T>::Com_Pointer() noexcept
@@ -262,14 +262,14 @@ auto Element::try_find_by_property_and_type(const std::wstring_view name_or_id, 
     IUIAutomationCondition *raw_prop_condition = nullptr;
     const _variant_t prop_variant(name_or_id.data());
     if (FAILED(automation_raw_ptr_->CreatePropertyCondition(property_id, prop_variant, &raw_prop_condition))) { return {}; }
-    const uia::Condition property_condition(raw_prop_condition);
+    const Condition property_condition(raw_prop_condition);
 
     IUIAutomationCondition *raw_combined_condition = nullptr;
     if (FAILED(automation_raw_ptr_->CreateAndCondition(property_condition.get(), type_condition.get(), &raw_combined_condition))) {
         return {};
     }
 
-    const uia::Condition search_condition(raw_combined_condition);
+    const Condition search_condition(raw_combined_condition);
     return create_and_find_with_timeout(pointer, search_condition, TreeScope_Descendants, timeout);
 }
 
@@ -450,8 +450,6 @@ Co_Instance::~Co_Instance() {
 
 Co_Instance::operator bool() const { return ok; }
 
-} // namespace uia
-
 auto UIA_Operation_Error::print() const -> void { std::wcerr << L"UIA Error: [" << static_cast<int>(code) << L"] " << message << L'\n'; }
 
 UIA_Application::UIA_Application(const std::wstring_view window_name, const std::chrono::seconds timeout)
@@ -598,7 +596,7 @@ auto UIA_Application::send_string_to_window(const std::wstring_view text) -> UIA
     SetForegroundWindow(hwnd);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    uia::send_string_via_keyboard(text);
+    send_string_via_keyboard(text);
     return true;
 }
 
@@ -606,3 +604,5 @@ auto UIA_Application::set_error(const UIA_Error_Code code, const std::wstring_vi
     last_error_ = UIA_Operation_Error{code, std::wstring(message)};
     last_error_->print();
 }
+
+} // namespace platform

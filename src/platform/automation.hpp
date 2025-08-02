@@ -1,5 +1,5 @@
 // =================================================================================
-// uia.hpp
+// platform/automation.hpp
 // =================================================================================
 
 #pragma once
@@ -13,7 +13,7 @@
 #include <uiautomation.h>
 #include <windows.h>
 
-namespace uia {
+namespace platform {
 
 template <class T>
 concept Com_Interface = !std::is_pointer_v<T> && std::is_base_of_v<IUnknown, T>;
@@ -169,8 +169,6 @@ struct Co_Instance {
     ~Co_Instance();
 };
 
-} // namespace uia
-
 /// @brief Categorized error codes for UIA operations.
 enum class UIA_Error_Code {
     COM_INIT_FAILED,
@@ -234,10 +232,12 @@ class UIA_Application {
     auto send_string_to_window(const std::wstring_view text) -> UIA_Result<bool>;
 
   private:
-    uia::Co_Instance co_init_;
-    uia::Automation automation_;
-    std::optional<uia::Element> target_window_;
+    Co_Instance co_init_;
+    Automation automation_;
+    std::optional<Element> target_window_;
     std::optional<UIA_Operation_Error> last_error_;
 
     auto set_error(UIA_Error_Code code, const std::wstring_view message) -> void;
 };
+
+} // namespace platform

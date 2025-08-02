@@ -1,5 +1,5 @@
 // =================================================================================
-// login_worker.cc
+// ui/login_worker.cc
 // =================================================================================
 
 #include "login_worker.hpp"
@@ -51,12 +51,8 @@ auto Login_Worker::do_login(riot::Game game, const QString &username, const QStr
     emit progress_updated("Setting credentials...");
     const auto login_result = client.login(username.toStdString(), password.toStdString());
     if (!login_result) {
-        QString error_message = "Login failed";
-        if (login_result.error().message.length() > 0) {
-            error_message += " (Reason: " + QString::fromStdWString(login_result.error().message) + ")";
-        }
-
-        emit login_finished(false, error_message);
+        const auto error_message = riot::client_error_as_string(login_result.error());
+        emit login_finished(false, QString::fromStdString(std::string(error_message)));
         return;
     }
 

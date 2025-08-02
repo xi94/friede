@@ -1,10 +1,10 @@
 // =================================================================================
-// client.hpp
+// riot/client.hpp
 // =================================================================================
 
 #pragma once
 
-#include "uia.hpp"
+#include "platform/automation.hpp"
 #include <chrono>
 #include <expected>
 #include <functional>
@@ -31,6 +31,7 @@ enum class Client_Error {
     Snapshot_Creation_Failed,
     Process_Creation_Failed,
     Process_Termination_Failed,
+    Automation_Failed,
 };
 
 /// @brief Converts a Client_Error enum to a user-readable string.
@@ -46,6 +47,7 @@ constexpr inline auto client_error_as_string(Client_Error error) -> std::string_
     case E::Snapshot_Creation_Failed: return "Failed to create a system process snapshot."sv;
     case E::Process_Creation_Failed: return "Failed to start the Riot Client process."sv;
     case E::Process_Termination_Failed: return "An existing Riot Client process could not be terminated."sv;
+    case E::Automation_Failed: return "A UI automation step failed. The client may have updated or is not responding."sv; // <-- Added this
     case E::None: return "No error."sv;
     default: return "An unknown client error occurred."sv;
     }
@@ -72,7 +74,7 @@ class Client {
     auto kill() -> Result<void>;
 
     /// @brief Executes the UI login sequence using the provided credentials.
-    auto login(std::string_view username, std::string_view password, bool remember_me = false) -> UIA_Result<bool>;
+    auto login(std::string_view username, std::string_view password, bool remember_me = false) -> Result<void>; // <-- Corrected return type
 
     /// @brief Checks if any Riot Client processes are currently running.
     [[nodiscard]] auto is_alive() const -> bool;
@@ -88,7 +90,7 @@ class Client {
     auto for_each_riot_process(const std::function<bool(const PROCESSENTRY32W &)> &callback) const -> Result<void>;
 
     std::string path_;
-    std::unique_ptr<UIA_Application> uia_;
+    std::unique_ptr<platform::UIA_Application> uia_;
 };
 
 } // namespace riot
