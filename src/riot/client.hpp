@@ -47,7 +47,7 @@ constexpr inline auto client_error_as_string(Client_Error error) -> std::string_
     case E::Snapshot_Creation_Failed: return "Failed to create a system process snapshot."sv;
     case E::Process_Creation_Failed: return "Failed to start the Riot Client process."sv;
     case E::Process_Termination_Failed: return "An existing Riot Client process could not be terminated."sv;
-    case E::Automation_Failed: return "A UI automation step failed. The client may have updated or is not responding."sv; // <-- Added this
+    case E::Automation_Failed: return "A UI automation step failed. The client may have updated or is not responding."sv;
     case E::None: return "No error."sv;
     default: return "An unknown client error occurred."sv;
     }
