@@ -62,50 +62,47 @@ class Window final : public QMainWindow {
      * @param username The account username.
      * @param password The account password.
      */
-    void start_login(riot::Game game, const QString &username, const QString &password);
+    auto start_login(riot::Game game, const QString &username, const QString &password) -> void;
 
   private slots:
     /// @brief Slot to receive and display progress messages from the worker.
-    void on_login_progress_update(const QString &message);
+    auto on_login_progress_update(const QString &message) -> void;
 
     /// @brief Slot to handle the result of a completed login attempt.
-    void on_login_finished(bool success, const QString &message);
-
-    /// @brief Slot to check for updates on click
-    void on_check_for_updates_clicked();
+    auto on_login_finished(bool success, const QString &message) -> void;
 
   private:
     // UI Widgets
-    QStackedWidget *widget_main_stacked;
-    QWidget *widget_menu;
-    QHBoxLayout *layout_menu;
-    QWidget *widget_accounts_content;
-    QLabel *label_accounts;
-    QTableWidget *table_accounts;
-    QWidget *widget_progress_page;
-    QLabel *label_progress_status;
-    QPushButton *button_progress_back;
-    QLabel *label_progress_game_icon;
-    QWidget *widget_top_bar;
-    QPushButton *button_top_bar_home;
-    QPushButton *button_top_bar_options;
-    QWidget *widget_bottom_bar;
-    QLabel *label_game_icon_placeholder;
-    QPushButton *button_login;
-    QPushButton *button_add_account;
-    QPushButton *button_remove_account;
+    QStackedWidget *widget_main_stacked_;
+    QWidget *widget_menu_;
+    QHBoxLayout *layout_menu_;
+    QWidget *widget_accounts_content_;
+    QLabel *label_accounts_;
+    QTableWidget *table_accounts_;
+    QWidget *widget_progress_page_;
+    QLabel *label_progress_status_;
+    QPushButton *button_progress_back_;
+    QLabel *label_progress_game_icon_;
+    QWidget *widget_top_bar_;
+    QPushButton *button_top_bar_home_;
+    QPushButton *button_top_bar_options_;
+    QWidget *widget_bottom_bar_;
+    QLabel *label_game_icon_placeholder_;
+    QPushButton *button_login_;
+    QPushButton *button_add_account_;
+    QPushButton *button_remove_account_;
 
     // App management
-    Updater *updater;
+    Updater *updater_;
 
     // State & Data
-    riot::Game current_game;
-    QString banners_dir;
-    QString game_icons_dir;
-    QString config_path;
-    toml::parse_result config;
-    QThread worker_thread;
-    QMap<riot::Game, QPixmap> original_banner_pixmaps;
+    riot::Game current_game_;
+    QString banners_dir_;
+    QString game_icons_dir_;
+    QString config_path_;
+    toml::parse_result config_;
+    QThread worker_thread_;
+    QMap<riot::Game, QPixmap> original_banner_pixmaps_;
 
     // Event Handlers
     auto handle_home_button_click() -> void;

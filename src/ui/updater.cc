@@ -22,10 +22,9 @@
 namespace ui {
 
 Updater::Updater(QWidget *parent)
-    : QObject(parent)
-    , parent_widget_(parent) {
-    network_manager_ = new QNetworkAccessManager(this);
-}
+    : QObject{parent}
+    , parent_widget_{parent}
+    , network_manager_{new QNetworkAccessManager{this}} {}
 
 auto Updater::check_for_updates() -> void {
     const auto url = QUrl{"https://raw.githubusercontent.com/xi94/friede/main/appcast.xml"};
@@ -77,7 +76,7 @@ auto Updater::on_update_check_finished(QNetworkReply *reply) -> void {
     if (current_version < QVersionNumber::fromString(latest_version)) {
         const auto flags = QMessageBox::Yes | QMessageBox::No;
         const auto message = QString{"A new version (%1) is available, would you like to download an install it?"}.arg(latest_version);
-        QMessageBox::StandardButton response = QMessageBox::information(parent_widget_, "Update Available", message, flags);
+        const QMessageBox::StandardButton response = QMessageBox::information(parent_widget_, "Update Available", message, flags);
 
         const bool wants_to_update = response == QMessageBox::Yes;
         if (wants_to_update) download_and_run_installer(installer_url);

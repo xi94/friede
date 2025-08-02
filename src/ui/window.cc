@@ -62,43 +62,44 @@ static auto get_config_path() -> QString {
 }
 
 Window::Window(QWidget *parent)
-    : QMainWindow(parent)
-    , widget_main_stacked(new QStackedWidget(this))
-    , widget_menu(new QWidget())
-    , layout_menu(new QHBoxLayout(widget_menu))
-    , widget_accounts_content(new QWidget())
-    , label_accounts(new QLabel())
-    , table_accounts(new QTableWidget(0, 3))
-    , widget_progress_page(new QWidget())
-    , label_progress_status(new QLabel("Initializing..."))
-    , label_progress_game_icon(new QLabel())
-    , button_progress_back(new QPushButton("back"))
-    , widget_top_bar(new QWidget(this))
-    , button_top_bar_home(new QPushButton("\tback", widget_top_bar))
-    , button_top_bar_options(new QPushButton("", widget_top_bar))
-    , widget_bottom_bar(new QWidget(this))
-    , label_game_icon_placeholder(new QLabel(widget_bottom_bar))
-    , button_login(new QPushButton("Login", widget_bottom_bar))
-    , button_add_account(new QPushButton("Add Account", widget_bottom_bar))
-    , button_remove_account(new QPushButton("Remove Account", widget_bottom_bar))
-    , banners_dir(QCoreApplication::applicationDirPath() + "/banners/")
-    , game_icons_dir(QCoreApplication::applicationDirPath() + "/icons/")
-    , config_path{get_config_path()}
-    , config(config_path.isEmpty() ? toml::parse_result{} : toml::parse_file(config_path.toStdString())) {
+    : QMainWindow{parent}
+    , widget_main_stacked_{new QStackedWidget{this}}
+    , widget_menu_{new QWidget}
+    , layout_menu_{new QHBoxLayout{widget_menu_}}
+    , widget_accounts_content_{new QWidget}
+    , label_accounts_{new QLabel}
+    , table_accounts_{new QTableWidget{0, 3}}
+    , widget_progress_page_{new QWidget}
+    , label_progress_status_{new QLabel{"Initializing..."}}
+    , label_progress_game_icon_{new QLabel}
+    , button_progress_back_{new QPushButton{"back"}}
+    , widget_top_bar_{new QWidget{this}}
+    , button_top_bar_home_{new QPushButton{"\tback", widget_top_bar_}}
+    , button_top_bar_options_{new QPushButton{"", widget_top_bar_}}
+    , widget_bottom_bar_{new QWidget{this}}
+    , updater_{new Updater{this}}
+    , label_game_icon_placeholder_{new QLabel{widget_bottom_bar_}}
+    , button_login_{new QPushButton{"Login", widget_bottom_bar_}}
+    , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}
+    , button_remove_account_{new QPushButton{"Remove Account", widget_bottom_bar_}}
+    , banners_dir_{QCoreApplication::applicationDirPath() + "/banners/"}
+    , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"}
+    , config_path_{get_config_path()}
+    , config_{config_path_.isEmpty() ? toml::parse_result{} : toml::parse_file(config_path_.toStdString())} {
 
     //
     // login worker
     //
 
     auto *worker = new Login_Worker;
-    worker->moveToThread(&worker_thread);
+    worker->moveToThread(&worker_thread_);
 
-    connect(&worker_thread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(&worker_thread_, &QThread::finished, worker, &QObject::deleteLater);
     connect(this, &Window::start_login, worker, &Login_Worker::do_login);
     connect(worker, &Login_Worker::progress_updated, this, &Window::on_login_progress_update);
     connect(worker, &Login_Worker::login_finished, this, &Window::on_login_finished);
 
-    worker_thread.start();
+    worker_thread_.start();
 
     //
     // window setup
@@ -116,12 +117,12 @@ Window::Window(QWidget *parent)
     main_window_layout->setContentsMargins(0, 0, 0, 0);
     main_window_layout->setSpacing(0);
 
-    layout_menu->setSpacing(20);
-    layout_menu->setContentsMargins(20, 0, 20, 0);
+    layout_menu_->setSpacing(20);
+    layout_menu_->setContentsMargins(20, 0, 20, 0);
 
     setup_common_ui();
 
-    main_window_layout->addWidget(widget_top_bar, 0, Qt::AlignTop);
+    main_window_layout->addWidget(widget_top_bar_, 0, Qt::AlignTop);
     setup_home_page();
     setup_accounts_page();
 
@@ -129,81 +130,78 @@ Window::Window(QWidget *parent)
     // progress page ui
     //
 
-    auto *progress_layout = new QVBoxLayout(widget_progress_page);
-    label_progress_game_icon->setFixedSize(128, 128);
-    label_progress_game_icon->setAlignment(Qt::AlignCenter);
-    label_progress_status->setAlignment(Qt::AlignCenter);
-    button_progress_back->hide();
-    button_progress_back->setFixedSize(150, 30);
+    auto *progress_layout = new QVBoxLayout{widget_progress_page_};
+    label_progress_game_icon_->setFixedSize(128, 128);
+    label_progress_game_icon_->setAlignment(Qt::AlignCenter);
+    label_progress_status_->setAlignment(Qt::AlignCenter);
+    button_progress_back_->hide();
+    button_progress_back_->setFixedSize(150, 30);
 
     progress_layout->addStretch();
-    progress_layout->addWidget(label_progress_game_icon, 0, Qt::AlignCenter);
-    progress_layout->addWidget(label_progress_status, 0, Qt::AlignCenter);
-    progress_layout->addWidget(button_progress_back, 0, Qt::AlignCenter);
+    progress_layout->addWidget(label_progress_game_icon_, 0, Qt::AlignCenter);
+    progress_layout->addWidget(label_progress_status_, 0, Qt::AlignCenter);
+    progress_layout->addWidget(button_progress_back_, 0, Qt::AlignCenter);
     progress_layout->addStretch();
 
     // for now, lets return to the home screen after login
-    connect(button_progress_back, &QPushButton::clicked, this, &Window::handle_home_button_click);
+    connect(button_progress_back_, &QPushButton::clicked, this, &Window::handle_home_button_click);
 
     //
     // setup window widgets
     //
 
-    widget_main_stacked->addWidget(widget_menu);
-    widget_main_stacked->addWidget(widget_accounts_content);
-    widget_main_stacked->addWidget(widget_progress_page);
+    widget_main_stacked_->addWidget(widget_menu_);
+    widget_main_stacked_->addWidget(widget_accounts_content_);
+    widget_main_stacked_->addWidget(widget_progress_page_);
 
-    main_window_layout->addWidget(widget_main_stacked);
-    main_window_layout->addWidget(widget_bottom_bar, 0, Qt::AlignBottom);
+    main_window_layout->addWidget(widget_main_stacked_);
+    main_window_layout->addWidget(widget_bottom_bar_, 0, Qt::AlignBottom);
 
     auto *central_widget = new QWidget{this};
     central_widget->setLayout(main_window_layout);
     setCentralWidget(central_widget);
 
-    widget_bottom_bar->hide();
-    label_game_icon_placeholder->hide();
-    button_login->hide();
-    button_add_account->hide();
-    button_remove_account->hide();
-    widget_top_bar->show();
+    widget_bottom_bar_->hide();
+    label_game_icon_placeholder_->hide();
+    button_login_->hide();
+    button_add_account_->hide();
+    button_remove_account_->hide();
+    widget_top_bar_->show();
 
-    updater = new Updater{this};
-    updater->check_for_updates();
+    updater_->check_for_updates();
 }
 
 Window::~Window() {
-    worker_thread.quit();
-    worker_thread.wait();
+    worker_thread_.quit();
+    worker_thread_.wait();
 }
 
-void Window::on_login_progress_update(const QString &message) { label_progress_status->setText(message); }
+auto Window::on_login_progress_update(const QString &message) -> void { label_progress_status_->setText(message); }
 
-void Window::on_login_finished(bool success, const QString &message) {
-    label_progress_status->setText(message);
-    button_progress_back->show();
+auto Window::on_login_finished(bool success, const QString &message) -> void {
+    label_progress_status_->setText(message);
+    button_progress_back_->show();
 
     if (success) {
-        label_progress_status->setStyleSheet("color: #2ecc71; font-weight: bold;");
+        label_progress_status_->setStyleSheet("color: #2ecc71; font-weight: bold;");
     } else {
-        label_progress_status->setStyleSheet("color: #e74c3c; font-weight: bold;");
+        label_progress_status_->setStyleSheet("color: #e74c3c; font-weight: bold;");
     }
 }
 
-void Window::on_check_for_updates_clicked() { updater->check_for_updates(); }
-
 auto Window::handle_login_button_click() -> void {
-    const int row = table_accounts->currentRow();
+    const int row = table_accounts_->currentRow();
     if (row == -1) return;
 
-    widget_top_bar->hide();
-    widget_bottom_bar->hide();
+    widget_top_bar_->hide();
+    widget_bottom_bar_->hide();
 
-    label_progress_status->setText("Initializing...");
-    label_progress_status->setStyleSheet("");
-    button_progress_back->hide();
+    label_progress_status_->setText("Initializing...");
+    label_progress_status_->setStyleSheet("");
+    button_progress_back_->hide();
 
     QString icon_filename;
-    switch (current_game) {
+    switch (current_game_) {
     case riot::Game::League_of_Legends: icon_filename = "league-icon.png"; break;
     case riot::Game::Valorant: icon_filename = "valorant-icon.png"; break;
     case riot::Game::Teamfight_Tactics: icon_filename = "teamfight-icon.png"; break;
@@ -211,23 +209,23 @@ auto Window::handle_login_button_click() -> void {
     }
 
     if (!icon_filename.isEmpty()) {
-        const auto game_icon_pixmap = QPixmap(game_icons_dir + icon_filename);
-        label_progress_game_icon->setPixmap(game_icon_pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        const auto game_icon_pixmap = QPixmap(game_icons_dir_ + icon_filename);
+        label_progress_game_icon_->setPixmap(game_icon_pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }
 
-    widget_main_stacked->setCurrentIndex(static_cast<int>(Page::Progress));
+    widget_main_stacked_->setCurrentIndex(static_cast<int>(Page::Progress));
 
-    const auto username = table_accounts->item(row, 1)->text();
-    const auto password = table_accounts->item(row, 2)->data(Qt::UserRole).toString();
+    const auto username = table_accounts_->item(row, 1)->text();
+    const auto password = table_accounts_->item(row, 2)->data(Qt::UserRole).toString();
 
     reset_account_selection();
-    emit start_login(current_game, username, password);
+    emit start_login(current_game_, username, password);
 }
 
 auto Window::create_banner_button(const QString &image_path, riot::Game game) -> QPushButton * {
-    auto *button = new QPushButton("", widget_menu);
-    const QPixmap original_pixmap(banners_dir + image_path);
-    original_banner_pixmaps[game] = original_pixmap;
+    auto *button = new QPushButton("", widget_menu_);
+    const QPixmap original_pixmap(banners_dir_ + image_path);
+    original_banner_pixmaps_[game] = original_pixmap;
     button->setIcon(QIcon(original_pixmap));
     button->setStyleSheet("QPushButton { border: 3px solid #5a5a5a; padding: 0px; background-color: transparent; outline: none; } "
                           "QPushButton:hover { border: 3px solid #9a9a9a; }");
@@ -236,24 +234,24 @@ auto Window::create_banner_button(const QString &image_path, riot::Game game) ->
 
 auto Window::resizeEvent(QResizeEvent *event) -> void {
     QMainWindow::resizeEvent(event);
-    layout_menu->blockSignals(true);
+    layout_menu_->blockSignals(true);
 
-    const int available_content_height = height() - widget_top_bar->height() - widget_bottom_bar->height();
+    const int available_content_height = height() - widget_top_bar_->height() - widget_bottom_bar_->height();
     const int available_content_width = width();
     if (available_content_width <= 0 || available_content_height <= 0) {
-        layout_menu->blockSignals(false);
+        layout_menu_->blockSignals(false);
         return;
     }
 
-    const int num_banners = layout_menu->count();
+    const int num_banners = layout_menu_->count();
     if (num_banners == 0) {
-        layout_menu->blockSignals(false);
+        layout_menu_->blockSignals(false);
         return;
     }
 
-    const int horizontal_margins = layout_menu->contentsMargins().left() + layout_menu->contentsMargins().right();
+    const int horizontal_margins = layout_menu_->contentsMargins().left() + layout_menu_->contentsMargins().right();
 
-    int total_spacing = layout_menu->spacing() * (num_banners - 1);
+    int total_spacing = layout_menu_->spacing() * (num_banners - 1);
     if (total_spacing < 0) total_spacing = 0;
 
     constexpr double aspect_ratio = 2160.0 / 1440.0;
@@ -279,8 +277,8 @@ auto Window::resizeEvent(QResizeEvent *event) -> void {
     }
 
     const int IMAGE_BORDER_PADDING = 2;
-    for (int i = 0; i < layout_menu->count(); ++i) {
-        auto *button = qobject_cast<QPushButton *>(layout_menu->itemAt(i)->widget());
+    for (int i = 0; i < layout_menu_->count(); ++i) {
+        auto *button = qobject_cast<QPushButton *>(layout_menu_->itemAt(i)->widget());
         if (button) {
             riot::Game current_game;
             switch (i) {
@@ -291,7 +289,7 @@ auto Window::resizeEvent(QResizeEvent *event) -> void {
             default: continue;
             }
 
-            const auto original_pixmap = original_banner_pixmaps[current_game];
+            const auto original_pixmap = original_banner_pixmaps_[current_game];
             if (!original_pixmap.isNull()) {
                 const auto banner_width = desired_banner_width;
                 const auto banner_height = desired_banner_height;
@@ -309,38 +307,38 @@ auto Window::resizeEvent(QResizeEvent *event) -> void {
         }
     }
 
-    layout_menu->blockSignals(false);
+    layout_menu_->blockSignals(false);
 }
 
 auto Window::keyPressEvent(QKeyEvent *event) -> void {
-    if (event->key() == Qt::Key_Escape && !table_accounts->selectedItems().isEmpty()) reset_account_selection();
+    if (event->key() == Qt::Key_Escape && !table_accounts_->selectedItems().isEmpty()) reset_account_selection();
     return QMainWindow::keyPressEvent(event);
 }
 
 auto Window::setup_common_ui() -> void {
-    widget_top_bar->setStyleSheet("background-color: #1c1c1c; border-bottom: 1px solid #d0d0d0; padding: 5px;");
-    widget_top_bar->setFixedHeight(40);
+    widget_top_bar_->setStyleSheet("background-color: #1c1c1c; border-bottom: 1px solid #d0d0d0; padding: 5px;");
+    widget_top_bar_->setFixedHeight(40);
 
-    auto *top_bar_layout = new QHBoxLayout(widget_top_bar);
+    auto *top_bar_layout = new QHBoxLayout(widget_top_bar_);
     top_bar_layout->setContentsMargins(5, 0, 5, 0);
     top_bar_layout->setSpacing(5);
 
-    button_top_bar_home->setIcon(QIcon::fromTheme("document-revert"));
-    button_top_bar_home->setStyleSheet("QPushButton { border: none; padding: 2px; background-color: transparent; outline: none; } "
-                                       "QPushButton:hover { background-color: #3a3a3b; }");
+    button_top_bar_home_->setIcon(QIcon::fromTheme("document-revert"));
+    button_top_bar_home_->setStyleSheet("QPushButton { border: none; padding: 2px; background-color: transparent; outline: none; } "
+                                        "QPushButton:hover { background-color: #3a3a3b; }");
 
-    button_top_bar_options->setIcon(QIcon::fromTheme("document-properties"));
-    button_top_bar_options->setStyleSheet(
+    button_top_bar_options_->setIcon(QIcon::fromTheme("document-properties"));
+    button_top_bar_options_->setStyleSheet(
         "QPushButton { border: none; padding: 2px; background-color: transparent; outline: none; } QPushButton:hover { background-color: "
         "#3a3a3b; } QPushButton::menu-indicator { image: none; width: 0px; }");
 
-    auto *options_menu = new QMenu(button_top_bar_options);
+    auto *options_menu = new QMenu(button_top_bar_options_);
     options_menu->setStyleSheet("QMenu { background-color: #2b2b2b; color: white; border: 1px solid #555; } QMenu::item { padding: 4px "
                                 "20px; } QMenu::item:selected { background-color: #404040; }");
 
     auto *action_check_for_updates = options_menu->addAction("check for updates");
     action_check_for_updates->setIcon(QIcon::fromTheme("emblem-synchronized"));
-    connect(action_check_for_updates, &QAction::triggered, this, &Window::on_check_for_updates_clicked);
+    connect(action_check_for_updates, &QAction::triggered, updater_, &Updater::check_for_updates);
 
     auto *action_open_directory = options_menu->addAction("open config directory");
     action_open_directory->setIcon(QIcon::fromTheme("folder-open"));
@@ -354,52 +352,52 @@ auto Window::setup_common_ui() -> void {
     auto *action_close = options_menu->addAction("close");
     action_close->setIcon(QIcon::fromTheme("window-close"));
 
-    button_top_bar_options->setMenu(options_menu);
-    top_bar_layout->addWidget(button_top_bar_options, 0, Qt::AlignLeft);
-    top_bar_layout->addWidget(button_top_bar_home, 0, Qt::AlignLeft);
+    button_top_bar_options_->setMenu(options_menu);
+    top_bar_layout->addWidget(button_top_bar_options_, 0, Qt::AlignLeft);
+    top_bar_layout->addWidget(button_top_bar_home_, 0, Qt::AlignLeft);
     top_bar_layout->addStretch();
-    button_top_bar_home->hide();
-    QObject::connect(button_top_bar_home, &QPushButton::clicked, this, [this] { handle_home_button_click(); });
+    button_top_bar_home_->hide();
+    QObject::connect(button_top_bar_home_, &QPushButton::clicked, this, &Window::handle_home_button_click);
 
     handle_home_button_click();
-    widget_bottom_bar->setFixedHeight(50);
+    widget_bottom_bar_->setFixedHeight(50);
 
-    QHBoxLayout *bottom_bar_layout = new QHBoxLayout(widget_bottom_bar);
+    auto *bottom_bar_layout = new QHBoxLayout{widget_bottom_bar_};
     bottom_bar_layout->setContentsMargins(10, 0, 15, 0);
     bottom_bar_layout->setSpacing(10);
-    button_login->setStyleSheet("QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: white; "
-                                "border-radius: 5px; outline: none; } QPushButton:hover { background-color: #4a4a4a; } "
-                                "QPushButton:disabled { background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
+    button_login_->setStyleSheet("QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: white; "
+                                 "border-radius: 5px; outline: none; } QPushButton:hover { background-color: #4a4a4a; } "
+                                 "QPushButton:disabled { background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
 
-    button_add_account->setStyleSheet("QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: "
-                                      "white; border-radius: 5px; outline: none; } QPushButton:hover { background-color: #4a4a4a; } "
-                                      "QPushButton:disabled { background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
+    button_add_account_->setStyleSheet("QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: "
+                                       "white; border-radius: 5px; outline: none; } QPushButton:hover { background-color: #4a4a4a; } "
+                                       "QPushButton:disabled { background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
 
-    bottom_bar_layout->addWidget(button_login);
-    bottom_bar_layout->addWidget(button_add_account);
-    button_remove_account->setStyleSheet(
+    bottom_bar_layout->addWidget(button_login_);
+    bottom_bar_layout->addWidget(button_add_account_);
+    button_remove_account_->setStyleSheet(
         "QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: white; border-radius: 5px; outline: "
         "none; } QPushButton:hover { background-color: #4a4a4a; } QPushButton:pressed { background-color: #c0392b; } QPushButton:disabled "
         "{ background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
 
-    bottom_bar_layout->addWidget(button_login);
-    bottom_bar_layout->addWidget(button_add_account);
-    bottom_bar_layout->addWidget(button_remove_account);
+    bottom_bar_layout->addWidget(button_login_);
+    bottom_bar_layout->addWidget(button_add_account_);
+    bottom_bar_layout->addWidget(button_remove_account_);
     bottom_bar_layout->addStretch();
 
-    label_game_icon_placeholder->setFixedSize(32, 32);
-    label_game_icon_placeholder->setStyleSheet("QLabel { border: none; background-color: transparent; }");
-    label_game_icon_placeholder->setContentsMargins(0, 0, 0, 0);
+    label_game_icon_placeholder_->setFixedSize(32, 32);
+    label_game_icon_placeholder_->setStyleSheet("QLabel { border: none; background-color: transparent; }");
+    label_game_icon_placeholder_->setContentsMargins(0, 0, 0, 0);
 
     auto *game_info_layout = new QHBoxLayout;
-    game_info_layout->addWidget(label_game_icon_placeholder);
+    game_info_layout->addWidget(label_game_icon_placeholder_);
     game_info_layout->setContentsMargins(0, 0, 0, 0);
     game_info_layout->setSpacing(5);
     bottom_bar_layout->addLayout(game_info_layout);
 
-    QObject::connect(button_login, &QPushButton::clicked, this, [this] { handle_login_button_click(); });
-    QObject::connect(button_add_account, &QPushButton::clicked, this, [this] { handle_add_account_button_click(); });
-    QObject::connect(button_remove_account, &QPushButton::clicked, this, [this] { handle_remove_account_button_click(); });
+    QObject::connect(button_login_, &QPushButton::clicked, this, [this] { handle_login_button_click(); });
+    QObject::connect(button_add_account_, &QPushButton::clicked, this, [this] { handle_add_account_button_click(); });
+    QObject::connect(button_remove_account_, &QPushButton::clicked, this, [this] { handle_remove_account_button_click(); });
 }
 
 auto Window::setup_home_page() -> void {
@@ -408,10 +406,10 @@ auto Window::setup_home_page() -> void {
     QPushButton *button_teamfight = create_banner_button("tft.jpg", riot::Game::Teamfight_Tactics);
     QPushButton *button_runeterra = create_banner_button("runeterra.jpg", riot::Game::Legends_of_Runeterra);
 
-    layout_menu->addWidget(button_league);
-    layout_menu->addWidget(button_valorant);
-    layout_menu->addWidget(button_teamfight);
-    layout_menu->addWidget(button_runeterra);
+    layout_menu_->addWidget(button_league);
+    layout_menu_->addWidget(button_valorant);
+    layout_menu_->addWidget(button_teamfight);
+    layout_menu_->addWidget(button_runeterra);
 
     QObject::connect(button_league, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::League_of_Legends); });
     QObject::connect(button_valorant, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Valorant); });
@@ -420,21 +418,21 @@ auto Window::setup_home_page() -> void {
 }
 
 auto Window::setup_accounts_page() -> void {
-    if (!config) {
+    if (!config_) {
         QMessageBox::critical(this, "Configuration Error", "Failed to parse configuration.toml");
         return;
     }
 
-    auto *accounts_layout = new QVBoxLayout{widget_accounts_content};
-    table_accounts->setHorizontalHeaderLabels({"Note", "Username", "Password"});
-    table_accounts->horizontalHeader()->setStretchLastSection(true);
-    table_accounts->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    table_accounts->setSelectionMode(QAbstractItemView::SingleSelection);
-    table_accounts->setSelectionBehavior(QAbstractItemView::SelectRows);
-    table_accounts->setEditTriggers(QAbstractItemView::DoubleClicked);
-    table_accounts->verticalHeader()->setVisible(false);
+    auto *accounts_layout = new QVBoxLayout{widget_accounts_content_};
+    table_accounts_->setHorizontalHeaderLabels({"Note", "Username", "Password"});
+    table_accounts_->horizontalHeader()->setStretchLastSection(true);
+    table_accounts_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    table_accounts_->setSelectionMode(QAbstractItemView::SingleSelection);
+    table_accounts_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table_accounts_->setEditTriggers(QAbstractItemView::DoubleClicked);
+    table_accounts_->verticalHeader()->setVisible(false);
 
-    const auto accounts = config["accounts"];
+    const auto accounts = config_["accounts"];
     if (accounts && accounts.is_array()) {
         for (const auto &account : *accounts.as_array()) {
             if (!account.is_table()) continue;
@@ -445,75 +443,75 @@ auto Window::setup_accounts_page() -> void {
             const auto password = table->get("password") ? table->get("password")->value_or(""sv) : ""sv;
             if (username.empty() || password.empty()) continue;
 
-            const int row = table_accounts->rowCount();
-            table_accounts->insertRow(row);
-            table_accounts->setItem(row, 0, new QTableWidgetItem{note.data()});
-            table_accounts->setItem(row, 1, new QTableWidgetItem{username.data()});
+            const int row = table_accounts_->rowCount();
+            table_accounts_->insertRow(row);
+            table_accounts_->setItem(row, 0, new QTableWidgetItem{note.data()});
+            table_accounts_->setItem(row, 1, new QTableWidgetItem{username.data()});
 
             auto *password_item = new Password_Table_Widget;
             password_item->setData(Qt::DisplayRole, QString("************"));
             password_item->setData(Qt::UserRole, QString(password.data()));
 
-            table_accounts->setItem(row, 2, password_item);
+            table_accounts_->setItem(row, 2, password_item);
         }
     }
 
-    QObject::connect(table_accounts, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
-    accounts_layout->addWidget(label_accounts);
-    accounts_layout->addWidget(table_accounts);
+    QObject::connect(table_accounts_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
+    accounts_layout->addWidget(label_accounts_);
+    accounts_layout->addWidget(table_accounts_);
 
-    QObject::connect(table_accounts, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
+    QObject::connect(table_accounts_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
     handle_table_selection_changed();
 }
 
 auto Window::handle_game_banner_click(riot::Game game) -> void {
-    current_game = game;
+    current_game_ = game;
 
     update_bottom_bar_content(game);
-    widget_main_stacked->setCurrentIndex(static_cast<int>(Page::Accounts));
+    widget_main_stacked_->setCurrentIndex(static_cast<int>(Page::Accounts));
 
-    auto *layout = qobject_cast<QHBoxLayout *>(widget_top_bar->layout());
-    layout->removeWidget(button_top_bar_options);
-    layout->addWidget(button_top_bar_options, 0, Qt::AlignRight);
+    auto *layout = qobject_cast<QHBoxLayout *>(widget_top_bar_->layout());
+    layout->removeWidget(button_top_bar_options_);
+    layout->addWidget(button_top_bar_options_, 0, Qt::AlignRight);
 
-    widget_top_bar->show();
-    button_top_bar_home->show();
-    widget_bottom_bar->show();
+    widget_top_bar_->show();
+    button_top_bar_home_->show();
+    widget_bottom_bar_->show();
 }
 
 auto Window::handle_home_button_click() -> void {
-    auto *layout = qobject_cast<QHBoxLayout *>(widget_top_bar->layout());
-    layout->removeWidget(button_top_bar_options);
-    layout->insertWidget(0, button_top_bar_options, 0, Qt::AlignLeft);
+    auto *layout = qobject_cast<QHBoxLayout *>(widget_top_bar_->layout());
+    layout->removeWidget(button_top_bar_options_);
+    layout->insertWidget(0, button_top_bar_options_, 0, Qt::AlignLeft);
 
-    button_top_bar_home->hide();
-    widget_bottom_bar->hide();
+    button_top_bar_home_->hide();
+    widget_bottom_bar_->hide();
     reset_account_selection();
 
-    widget_main_stacked->setCurrentIndex(static_cast<int>(Page::Home));
-    widget_top_bar->show();
+    widget_main_stacked_->setCurrentIndex(static_cast<int>(Page::Home));
+    widget_top_bar_->show();
 }
 
 auto Window::handle_table_selection_changed() -> void {
-    const bool row_is_selected = !table_accounts->selectedItems().isEmpty();
-    button_login->setEnabled(row_is_selected);
-    button_remove_account->setEnabled(row_is_selected);
+    const bool row_is_selected = !table_accounts_->selectedItems().isEmpty();
+    button_login_->setEnabled(row_is_selected);
+    button_remove_account_->setEnabled(row_is_selected);
 }
 
 auto Window::save_config_to_file() -> bool {
-    if (!config) {
+    if (!config_) {
         QMessageBox::critical(this, "Save Error", "Configuration object is invalid, cannot save.");
         return false;
     }
 
     try {
-        auto ofs = std::ofstream{config_path.toStdString()};
+        auto ofs = std::ofstream{config_path_.toStdString()};
         if (!ofs.is_open()) {
-            QMessageBox::critical(this, "Save Error", "Failed to open configuration for writing: " + config_path);
+            QMessageBox::critical(this, "Save Error", "Failed to open configuration for writing: " + config_path_);
             return false;
         }
 
-        ofs << config;
+        ofs << config_;
         ofs.close();
     } catch (const std::exception &e) {
         QMessageBox::critical(this, "Save Error", "An exception occurred during configuration write: " + QString(e.what()));
@@ -539,7 +537,7 @@ auto Window::handle_add_account_button_click() -> void {
 }
 
 auto Window::handle_remove_account_button_click() -> void {
-    QList<QTableWidgetItem *> selected_items = table_accounts->selectedItems();
+    QList<QTableWidgetItem *> selected_items = table_accounts_->selectedItems();
     if (selected_items.isEmpty()) {
         QMessageBox::critical(this, "Delete Account", "Please select an account to delete.");
         return;
@@ -547,14 +545,14 @@ auto Window::handle_remove_account_button_click() -> void {
 
     const int current_row = selected_items.first()->row();
     auto account_to_delete_name = QString{"the selected account"};
-    if (table_accounts->item(current_row, 1)) { account_to_delete_name = table_accounts->item(current_row, 1)->text(); }
+    if (table_accounts_->item(current_row, 1)) { account_to_delete_name = table_accounts_->item(current_row, 1)->text(); }
 
     const auto reply_flags = QMessageBox::Yes | QMessageBox::No;
     const auto confirmation = QString{"Are you sure you want to delete '%1'?"}.arg(account_to_delete_name);
     const auto reply = QMessageBox::warning(this, "Confirm Deletion", confirmation, reply_flags);
     if (reply == QMessageBox::No) return;
 
-    auto *accounts_array = config.table().get_as<toml::array>("accounts");
+    auto *accounts_array = config_.table().get_as<toml::array>("accounts");
     if (!accounts_array) {
         QMessageBox::critical(this, "Deletion Error", "TOML config does not contain 'accounts', cannot delete.");
         return;
@@ -571,15 +569,15 @@ auto Window::handle_remove_account_button_click() -> void {
         return;
     }
 
-    table_accounts->blockSignals(true);
-    table_accounts->removeRow(current_row);
-    table_accounts->blockSignals(false);
+    table_accounts_->blockSignals(true);
+    table_accounts_->removeRow(current_row);
+    table_accounts_->blockSignals(false);
 
     reset_account_selection();
 }
 
 auto Window::save_account_data(int row, int column, const QString &new_value) -> void {
-    auto *accounts_array = config.table().get_as<toml::array>("accounts");
+    auto *accounts_array = config_.table().get_as<toml::array>("accounts");
     if (!accounts_array) {
         QMessageBox::critical(this, "Save Error", "TOML config does not contain 'accounts'.");
         return;
@@ -608,16 +606,16 @@ auto Window::save_account_data(int row, int column, const QString &new_value) ->
 }
 
 auto Window::add_account_to_config(const QString &note, const QString &username, const QString &password) -> void {
-    if (!config) {
+    if (!config_) {
         QMessageBox::critical(this, "Configuration Error", "TOML config is not valid, cannot add account.");
         return;
     }
 
-    auto *accounts_array = config.table().get_as<toml::array>("accounts");
+    auto *accounts_array = config_.table().get_as<toml::array>("accounts");
     if (!accounts_array) {
-        config.table().insert("accounts", toml::array{});
+        config_.table().insert("accounts", toml::array{});
 
-        accounts_array = config.table().get_as<toml::array>("accounts");
+        accounts_array = config_.table().get_as<toml::array>("accounts");
         if (!accounts_array) {
             QMessageBox::critical(this, "Configuration Error", "Failed to create 'accounts' array in TOML config.");
             return;
@@ -631,30 +629,30 @@ auto Window::add_account_to_config(const QString &note, const QString &username,
     accounts_array->push_back(new_toml_table);
 
     save_config_to_file();
-    table_accounts->blockSignals(true);
+    table_accounts_->blockSignals(true);
 
-    const int new_qt_row = table_accounts->rowCount();
-    table_accounts->insertRow(new_qt_row);
+    const int new_qt_row = table_accounts_->rowCount();
+    table_accounts_->insertRow(new_qt_row);
 
     auto *note_item = new QTableWidgetItem{note};
-    table_accounts->setItem(new_qt_row, 0, note_item);
+    table_accounts_->setItem(new_qt_row, 0, note_item);
 
     auto *username_item = new QTableWidgetItem{username};
-    table_accounts->setItem(new_qt_row, 1, username_item);
+    table_accounts_->setItem(new_qt_row, 1, username_item);
 
     auto *password_item = new Password_Table_Widget;
     password_item->setData(Qt::DisplayRole, QString("************"));
     password_item->setData(Qt::UserRole, password);
 
-    table_accounts->setItem(new_qt_row, 2, password_item);
-    table_accounts->blockSignals(false);
-    table_accounts->setCurrentCell(new_qt_row, 0);
+    table_accounts_->setItem(new_qt_row, 2, password_item);
+    table_accounts_->blockSignals(false);
+    table_accounts_->setCurrentCell(new_qt_row, 0);
 }
 
 auto Window::handle_account_cell_updated(int row, int column) -> void {
-    table_accounts->blockSignals(true);
+    table_accounts_->blockSignals(true);
 
-    if (auto *item = table_accounts->item(row, column)) {
+    if (auto *item = table_accounts_->item(row, column)) {
         const auto text = item->text();
 
         if (column == 2) {
@@ -665,10 +663,10 @@ auto Window::handle_account_cell_updated(int row, int column) -> void {
         save_account_data(row, column, text);
     }
 
-    table_accounts->blockSignals(false);
+    table_accounts_->blockSignals(false);
 }
 
-auto Window::reset_account_selection() -> void { table_accounts->setCurrentCell(-1, -1); }
+auto Window::reset_account_selection() -> void { table_accounts_->setCurrentCell(-1, -1); }
 
 auto Window::update_bottom_bar_content(riot::Game game) -> void {
     QString icon_filename;
@@ -680,13 +678,13 @@ auto Window::update_bottom_bar_content(riot::Game game) -> void {
     case riot::Game::Legends_of_Runeterra: icon_filename = "runeterra-icon.png"; break;
     }
 
-    const auto game_icon = QIcon{game_icons_dir + icon_filename};
-    label_game_icon_placeholder->setPixmap(game_icon.pixmap(QSize(32, 32)));
-    label_game_icon_placeholder->show();
+    const auto game_icon = QIcon{game_icons_dir_ + icon_filename};
+    label_game_icon_placeholder_->setPixmap(game_icon.pixmap(QSize(32, 32)));
+    label_game_icon_placeholder_->show();
 
-    button_login->show();
-    button_add_account->show();
-    button_remove_account->show();
+    button_login_->show();
+    button_add_account_->show();
+    button_remove_account_->show();
 }
 
 } // namespace ui

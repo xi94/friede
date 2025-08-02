@@ -26,19 +26,19 @@ class Login_Worker final : public QObject {
      * @param username The account username.
      * @param password The account password.
      */
-    void do_login(riot::Game game, const QString &username, const QString &password);
+    auto do_login(riot::Game game, const QString &username, const QString &password) -> void;
 
   signals:
     /**
      * @brief Signals a change in the login status message.
      * @param message The progress message to display.
      */
-    void progress_updated(const QString &message);
+    auto progress_updated(const QString &message) -> void;
 
     /**
      * @brief Signals the completion of the login attempt.
      * @param success True if the login succeeded, false otherwise.
      * @param message A final status or error message.
      */
-    void login_finished(bool success, const QString &message);
+    auto login_finished(bool success, const QString &message) -> void;
 };

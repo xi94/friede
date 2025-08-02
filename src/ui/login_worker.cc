@@ -12,7 +12,7 @@
 Login_Worker::Login_Worker(QObject *parent)
     : QObject(parent) {}
 
-void Login_Worker::do_login(riot::Game game, const QString &username, const QString &password) {
+auto Login_Worker::do_login(riot::Game game, const QString &username, const QString &password) -> void {
     auto client_result = riot::Client::create();
     if (!client_result) {
         const auto error_string = QString::fromStdString(std::string(riot::client_error_as_string(client_result.error())));
