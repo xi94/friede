@@ -395,9 +395,9 @@ auto Window::setup_common_ui() -> void {
     game_info_layout->setSpacing(5);
     bottom_bar_layout->addLayout(game_info_layout);
 
-    QObject::connect(button_login_, &QPushButton::clicked, this, [this] { handle_login_button_click(); });
-    QObject::connect(button_add_account_, &QPushButton::clicked, this, [this] { handle_add_account_button_click(); });
-    QObject::connect(button_remove_account_, &QPushButton::clicked, this, [this] { handle_remove_account_button_click(); });
+    QObject::connect(button_login_, &QPushButton::clicked, this, &Window::handle_login_button_click);
+    QObject::connect(button_add_account_, &QPushButton::clicked, this, &Window::handle_add_account_button_click);
+    QObject::connect(button_remove_account_, &QPushButton::clicked, this, &Window::handle_remove_account_button_click);
 }
 
 auto Window::setup_home_page() -> void {
