@@ -9,7 +9,7 @@ auto main(int argc, char *argv[]) -> int {
     auto app = QApplication{argc, argv};
 
     app.setApplicationName("friede");
-    app.setApplicationVersion("1.1.2");
+    app.setApplicationVersion("1.1.3");
 
     auto window = ui::Window{};
     window.show();
