@@ -344,7 +344,6 @@ auto Window::setup_common_ui() -> void {
 
     auto *action_open_directory = options_menu->addAction("open config directory");
     action_open_directory->setIcon(QIcon::fromTheme("folder-open"));
-
     connect(action_open_directory, &QAction::triggered, this, [] {
         const QString friede_data_directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
         QDesktopServices::openUrl(QUrl::fromLocalFile(friede_data_directory));
@@ -353,11 +352,9 @@ auto Window::setup_common_ui() -> void {
     options_menu->addSeparator();
 
     auto *action_close = options_menu->addAction("close");
-
     action_close->setIcon(QIcon::fromTheme("window-close"));
 
     button_top_bar_options->setMenu(options_menu);
-
     top_bar_layout->addWidget(button_top_bar_options, 0, Qt::AlignLeft);
     top_bar_layout->addWidget(button_top_bar_home, 0, Qt::AlignLeft);
     top_bar_layout->addStretch();
@@ -365,7 +362,6 @@ auto Window::setup_common_ui() -> void {
     QObject::connect(button_top_bar_home, &QPushButton::clicked, this, [this] { handle_home_button_click(); });
 
     handle_home_button_click();
-
     widget_bottom_bar->setFixedHeight(50);
 
     QHBoxLayout *bottom_bar_layout = new QHBoxLayout(widget_bottom_bar);
