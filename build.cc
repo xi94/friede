@@ -1,75 +1,38 @@
+#include <talon/talon.hpp>
+
+#include <algorithm>
 #include <format>
 #include <string_view>
-#include <talon/talon.hpp>
 #include <vector>
 
 namespace fs = std::filesystem;
 using namespace std::literals;
 
-void generate_moc_file(const std::string_view target_file) {
-    const fs::path input_path(target_file);
+auto generate_moc_files(std::initializer_list<std::string_view> relative_paths) -> void
+{
+    fs::create_directories("moc");
 
-    fs::path output_filename("moc_" + input_path.filename().string());
-    output_filename.replace_extension(".cpp");
+    for (const auto &path : relative_paths) {
+        const auto input_path = fs::path{path};
 
-    const fs::path relative_output_path = fs::path("moc") / output_filename;
-    const fs::path include_prefix = input_path.parent_path();
+        fs::path output_filename("moc_" + input_path.filename().string());
+        output_filename.replace_extension(".cpp");
 
-    constexpr auto qt_include_path = "C:\\dev\\qt-build\\qtbase\\include"sv;
-    const auto command = std::format(R"(moc -p {} -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -I{} -Isrc src\{} > {})",
-                                     include_prefix.generic_string(), qt_include_path, target_file, relative_output_path.generic_string());
+        const auto relative_output_path = fs::path{"moc"} / output_filename;
+        const fs::path include_prefix = input_path.parent_path();
 
-    std::printf("%s -> %s\n", std::string(target_file).c_str(), relative_output_path.string().c_str());
-    std::system(command.c_str());
-}
+        constexpr auto qt_include_path = "C:\\dev\\qt-build\\qtbase\\include"sv;
+        const auto command =
+            std::format(R"(moc -p {} -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -I{} -Isrc src\{} > {})", include_prefix.generic_string(),
+                        qt_include_path, std::string(path), relative_output_path.generic_string());
 
-auto add_build_dependencies(const talon::arguments &args, talon::workspace *workspace) -> void {
-    workspace->add_includes("src");
-    workspace->add_all_build_files("src");
-    workspace->add_all_build_files("moc");
-    workspace->add_library_files("ole32", "comsuppw");
-
-    //
-    // thirdparty
-    //
-
-    workspace->add_includes("thirdparty/include");
-    workspace->add_library_includes("thirdparty/lib");
-
-    workspace->add_library_files("tomlplusplus");
-
-    //
-    // qt (pls move this to thirdparty if possible :D)
-    //
-
-    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include");
-    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtCore");
-    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtWidgets");
-    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtGui");
-
-    workspace->add_library_files("Qt6Widgets", "Qt6Core", "Qt6Gui", "Qt6Network");
-    workspace->add_library_includes("C:\\dev\\qt-build\\qtbase\\lib");
-}
-
-auto set_build_options(const talon::arguments &args, talon::workspace *workspace) -> void {
-    auto *opts = &workspace->options;
-
-    opts->compiler = talon::msvc;
-    opts->cpp_version = talon::std_23;
-
-    opts->warnings_are_errors = true;
-    opts->enable_recommended_warnings();
-
-    if (args.contains("release")) {
-        opts->optimization = talon::speed;
-
-        // build release without the debug console
-        workspace->additional_linker_flags.push_back("/SUBSYSTEM:WINDOWS");
-        workspace->additional_linker_flags.push_back("/ENTRY:mainCRTStartup");
+        std::printf("%s -> %s\n", path.data(), relative_output_path.string().data());
+        std::system(command.data());
     }
 }
 
-auto copy_resources_to_build(talon::workspace &workspace) -> void {
+auto copy_resources_to_build(talon::workspace &workspace) -> void
+{
     const auto build = workspace.root / "build";
     fs::create_directories(build);
 
@@ -82,7 +45,8 @@ auto copy_resources_to_build(talon::workspace &workspace) -> void {
     if (fs::exists(icons_src)) fs::copy(icons_src, icons_dst, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
 }
 
-auto maybe_deploy_qt_deps(const bool needs_deployment) -> void {
+auto maybe_deploy_qt_deps(const bool needs_deployment) -> void
+{
     if (!needs_deployment) return;
 
     // TODO why are dont hardcoded :D
@@ -90,23 +54,64 @@ auto maybe_deploy_qt_deps(const bool needs_deployment) -> void {
     std::system(std::format("windeployqt {} --release", output_path).data());
 }
 
-auto setup_moc_files() -> void {
-    fs::create_directories("moc");
-    generate_moc_file("ui/window.hpp");
-    generate_moc_file("ui/updater.hpp");
-    generate_moc_file("core/config.hpp");
-    generate_moc_file("ui/login_worker.hpp");
-    generate_moc_file("ui/add_account_dialog.hpp");
+auto add_build_dependencies(const talon::arguments &args, talon::workspace *workspace) -> void
+{
+    workspace->add_includes("src");
+    workspace->add_source_directories("src", "moc");
+    workspace->add_libraries("ole32", "comsuppw");
+    workspace->set_windows_resource_file("resources/app.rc");
+
+    //
+    // thirdparty
+    //
+
+    workspace->add_includes("thirdparty/include");
+    workspace->add_library_includes("thirdparty/lib");
+
+    workspace->add_libraries("tomlplusplus");
+
+    //
+    // qt (pls move this to thirdparty if possible :D)
+    //
+
+    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include");
+    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtCore");
+    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtWidgets");
+    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtGui");
+
+    workspace->add_libraries("Qt6Widgets", "Qt6Core", "Qt6Gui", "Qt6Network");
+    workspace->add_library_includes("C:\\dev\\qt-build\\qtbase\\lib");
 }
 
-auto build(talon::arguments args) -> void {
+auto set_build_options(const talon::arguments &args, talon::workspace *workspace) -> void
+{
+    auto *opts = &workspace->options;
+
+    opts->compiler = talon::msvc;
+    opts->cpp_version = talon::std_23;
+
+    opts->warnings_are_errors = true;
+    opts->enable_recommended_warnings();
+
+    opts->print_build_script = args.contains("print");
+
+    if (args.contains("release")) {
+        opts->optimization = talon::speed;
+
+        // build release without the debug console
+        workspace->additional_linker_flags.push_back("/SUBSYSTEM:WINDOWS");
+        workspace->additional_linker_flags.push_back("/ENTRY:mainCRTStartup");
+    }
+}
+
+auto build(talon::arguments args) -> void
+{
     auto workspace = talon::workspace{};
 
     add_build_dependencies(args, &workspace);
     set_build_options(args, &workspace);
 
-    // this needs to be done each time we compile
-    setup_moc_files();
+    generate_moc_files({"ui/window.hpp", "ui/updater.hpp", "ui/login_worker.hpp", "ui/add_account_dialog.hpp", "core/config.hpp"});
 
     // FIXME yeah this doesnt really work if the build folder is there lol
     const bool needs_qt_deps = !fs::exists(workspace.root / "build");

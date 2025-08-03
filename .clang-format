@@ -15,10 +15,10 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortLambdasOnASingleLine: All
 AllowShortBlocksOnASingleLine: Always
 
+BreakBeforeBraces: WebKit
 BreakConstructorInitializers: BeforeComma
 
 BraceWrapping:
   AfterFunction: false
   BeforeLambdaBody: false
-
 ---

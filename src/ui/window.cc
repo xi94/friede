@@ -50,7 +50,8 @@ Window::Window(QWidget *parent)
     , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}
     , button_remove_account_{new QPushButton{"Remove Account", widget_bottom_bar_}}
     , banners_dir_{QCoreApplication::applicationDirPath() + "/banners/"}
-    , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"} {
+    , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"}
+{
 
     //
     // login worker
@@ -72,8 +73,6 @@ Window::Window(QWidget *parent)
 
     setMinimumSize(750, 450);
     setWindowTitle("a flame alighteth");
-
-    setWindowIcon(QIcon(QCoreApplication::applicationDirPath() + "/icons/app-icon.png"));
 
     const auto available_geometry = QGuiApplication::primaryScreen()->availableGeometry();
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), available_geometry));
@@ -136,14 +135,16 @@ Window::Window(QWidget *parent)
     updater_->check_for_updates();
 }
 
-Window::~Window() {
+Window::~Window()
+{
     worker_thread_.quit();
     worker_thread_.wait();
 }
 
 auto Window::on_login_progress_update(const QString &message) -> void { label_progress_status_->setText(message); }
 
-auto Window::on_login_finished(bool success, const QString &message) -> void {
+auto Window::on_login_finished(bool success, const QString &message) -> void
+{
     label_progress_status_->setText(message);
     button_progress_back_->show();
 
@@ -154,7 +155,8 @@ auto Window::on_login_finished(bool success, const QString &message) -> void {
     }
 }
 
-auto Window::handle_login_button_click() -> void {
+auto Window::handle_login_button_click() -> void
+{
     const int row = table_accounts_->currentRow();
     if (row == -1) return;
 
@@ -187,7 +189,8 @@ auto Window::handle_login_button_click() -> void {
     emit start_login(current_game_, username, password);
 }
 
-auto Window::create_banner_button(const QString &image_path, riot::Game game) -> QPushButton * {
+auto Window::create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *
+{
     auto *button = new QPushButton("", widget_menu_);
     const QPixmap original_pixmap(banners_dir_ + image_path);
     original_banner_pixmaps_[game] = original_pixmap;
@@ -197,7 +200,8 @@ auto Window::create_banner_button(const QString &image_path, riot::Game game) ->
     return button;
 }
 
-auto Window::resizeEvent(QResizeEvent *event) -> void {
+auto Window::resizeEvent(QResizeEvent *event) -> void
+{
     QMainWindow::resizeEvent(event);
     layout_menu_->blockSignals(true);
 
@@ -275,12 +279,14 @@ auto Window::resizeEvent(QResizeEvent *event) -> void {
     layout_menu_->blockSignals(false);
 }
 
-auto Window::keyPressEvent(QKeyEvent *event) -> void {
+auto Window::keyPressEvent(QKeyEvent *event) -> void
+{
     if (event->key() == Qt::Key_Escape && !table_accounts_->selectedItems().isEmpty()) reset_account_selection();
     return QMainWindow::keyPressEvent(event);
 }
 
-auto Window::setup_common_ui() -> void {
+auto Window::setup_common_ui() -> void
+{
     widget_top_bar_->setStyleSheet("background-color: #1c1c1c; border-bottom: 1px solid #d0d0d0; padding: 5px;");
     widget_top_bar_->setFixedHeight(40);
 
@@ -363,7 +369,8 @@ auto Window::setup_common_ui() -> void {
     QObject::connect(button_remove_account_, &QPushButton::clicked, this, &Window::handle_remove_account_button_click);
 }
 
-auto Window::setup_home_page() -> void {
+auto Window::setup_home_page() -> void
+{
     QPushButton *button_league = create_banner_button("league.jpg", riot::Game::League_of_Legends);
     QPushButton *button_valorant = create_banner_button("valorant.jpg", riot::Game::Valorant);
     QPushButton *button_teamfight = create_banner_button("tft.jpg", riot::Game::Teamfight_Tactics);
@@ -380,7 +387,8 @@ auto Window::setup_home_page() -> void {
     QObject::connect(button_runeterra, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Legends_of_Runeterra); });
 }
 
-auto Window::setup_accounts_page() -> void {
+auto Window::setup_accounts_page() -> void
+{
     auto *accounts_layout = new QVBoxLayout{widget_accounts_content_};
     table_accounts_->setHorizontalHeaderLabels({"Note", "Username", "Password"});
     table_accounts_->horizontalHeader()->setStretchLastSection(true);
@@ -399,7 +407,8 @@ auto Window::setup_accounts_page() -> void {
     refresh_accounts_table();
 }
 
-auto Window::refresh_accounts_table() -> void {
+auto Window::refresh_accounts_table() -> void
+{
     table_accounts_->blockSignals(true);
 
     table_accounts_->setRowCount(0);
@@ -421,7 +430,8 @@ auto Window::refresh_accounts_table() -> void {
     handle_table_selection_changed();
 }
 
-auto Window::handle_game_banner_click(riot::Game game) -> void {
+auto Window::handle_game_banner_click(riot::Game game) -> void
+{
     current_game_ = game;
 
     update_bottom_bar_content(game);
@@ -436,7 +446,8 @@ auto Window::handle_game_banner_click(riot::Game game) -> void {
     widget_bottom_bar_->show();
 }
 
-auto Window::handle_home_button_click() -> void {
+auto Window::handle_home_button_click() -> void
+{
     auto *layout = qobject_cast<QHBoxLayout *>(widget_top_bar_->layout());
     layout->removeWidget(button_top_bar_options_);
     layout->insertWidget(0, button_top_bar_options_, 0, Qt::AlignLeft);
@@ -449,13 +460,15 @@ auto Window::handle_home_button_click() -> void {
     widget_top_bar_->show();
 }
 
-auto Window::handle_table_selection_changed() -> void {
+auto Window::handle_table_selection_changed() -> void
+{
     const bool row_is_selected = !table_accounts_->selectedItems().isEmpty();
     button_login_->setEnabled(row_is_selected);
     button_remove_account_->setEnabled(row_is_selected);
 }
 
-auto Window::handle_add_account_button_click() -> void {
+auto Window::handle_add_account_button_click() -> void
+{
     Add_Account_Dialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         core::Account new_account;
@@ -476,7 +489,8 @@ auto Window::handle_add_account_button_click() -> void {
     }
 }
 
-auto Window::handle_remove_account_button_click() -> void {
+auto Window::handle_remove_account_button_click() -> void
+{
     const int current_row = table_accounts_->currentRow();
     if (current_row == -1) {
         QMessageBox::warning(this, "Delete Account", "Please select an account to delete.");
@@ -495,7 +509,8 @@ auto Window::handle_remove_account_button_click() -> void {
     }
 }
 
-auto Window::handle_account_cell_updated(int row, int column) -> void {
+auto Window::handle_account_cell_updated(int row, int column) -> void
+{
     if (row < 0 || row >= current_accounts_.size()) return;
     auto updated_account = current_accounts_[row];
 
@@ -525,7 +540,8 @@ auto Window::handle_account_cell_updated(int row, int column) -> void {
 
 auto Window::reset_account_selection() -> void { table_accounts_->setCurrentCell(-1, -1); }
 
-auto Window::update_bottom_bar_content(riot::Game game) -> void {
+auto Window::update_bottom_bar_content(riot::Game game) -> void
+{
     QString icon_filename;
 
     switch (game) {
