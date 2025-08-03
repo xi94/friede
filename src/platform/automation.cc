@@ -14,19 +14,26 @@ namespace platform {
 
 template <Com_Interface T>
 Com_Pointer<T>::Com_Pointer() noexcept
-    : pointer(nullptr) {}
+    : pointer(nullptr)
+{
+}
 
 template <Com_Interface T>
 Com_Pointer<T>::Com_Pointer(T *const p) noexcept
-    : pointer(p) {}
+    : pointer(p)
+{
+}
 
 template <Com_Interface T>
 Com_Pointer<T>::Com_Pointer(Com_Pointer &&other) noexcept
-    : pointer(other.pointer) {
+    : pointer(other.pointer)
+{
     other.pointer = nullptr;
 }
 
-template <Com_Interface T> auto Com_Pointer<T>::operator=(Com_Pointer &&other) noexcept -> Com_Pointer & {
+template <Com_Interface T>
+auto Com_Pointer<T>::operator=(Com_Pointer &&other) noexcept -> Com_Pointer &
+{
     if (this != std::addressof(other)) {
         if (pointer) pointer->Release();
         pointer = other.pointer;
@@ -36,11 +43,29 @@ template <Com_Interface T> auto Com_Pointer<T>::operator=(Com_Pointer &&other) n
     return *this;
 }
 
-template <Com_Interface T> auto Com_Pointer<T>::operator->() noexcept -> T * { return pointer; }
-template <Com_Interface T> auto Com_Pointer<T>::operator->() const noexcept -> const T * { return pointer; }
-template <Com_Interface T> auto Com_Pointer<T>::get() const noexcept -> T * { return pointer; }
-template <Com_Interface T> Com_Pointer<T>::operator bool() const noexcept { return pointer != nullptr; }
-template <Com_Interface T> auto Com_Pointer<T>::operator&() noexcept -> T ** {
+template <Com_Interface T>
+auto Com_Pointer<T>::operator->() noexcept -> T *
+{
+    return pointer;
+}
+template <Com_Interface T>
+auto Com_Pointer<T>::operator->() const noexcept -> const T *
+{
+    return pointer;
+}
+template <Com_Interface T>
+auto Com_Pointer<T>::get() const noexcept -> T *
+{
+    return pointer;
+}
+template <Com_Interface T>
+Com_Pointer<T>::operator bool() const noexcept
+{
+    return pointer != nullptr;
+}
+template <Com_Interface T>
+auto Com_Pointer<T>::operator&() noexcept -> T **
+{
     if (pointer) {
         pointer->Release();
         pointer = nullptr;
@@ -48,32 +73,41 @@ template <Com_Interface T> auto Com_Pointer<T>::operator&() noexcept -> T ** {
     return &pointer;
 }
 
-template <Com_Interface T> auto Com_Pointer<T>::attach(T *const p) noexcept -> void {
+template <Com_Interface T>
+auto Com_Pointer<T>::attach(T *const p) noexcept -> void
+{
     if (pointer) pointer->Release();
     pointer = p;
 }
 
-template <Com_Interface T> auto Com_Pointer<T>::detach() noexcept -> T * {
+template <Com_Interface T>
+auto Com_Pointer<T>::detach() noexcept -> T *
+{
     T *const p = pointer;
     pointer = nullptr;
     return p;
 }
 
-template <Com_Interface T> auto Com_Pointer<T>::reset() noexcept -> void {
+template <Com_Interface T>
+auto Com_Pointer<T>::reset() noexcept -> void
+{
     if (pointer) {
         pointer->Release();
         pointer = nullptr;
     }
 }
 
-template <Com_Interface T> Com_Pointer<T>::~Com_Pointer() {
+template <Com_Interface T>
+Com_Pointer<T>::~Com_Pointer()
+{
     if (pointer) {
         pointer->Release();
         pointer = nullptr;
     }
 }
 
-auto send_string_via_keyboard(const std::wstring_view str) -> void {
+auto send_string_via_keyboard(const std::wstring_view str) -> void
+{
     std::vector<INPUT> inputs;
     inputs.reserve(str.length() * 2);
 
@@ -93,7 +127,8 @@ auto send_string_via_keyboard(const std::wstring_view str) -> void {
     if (!inputs.empty()) SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
 }
 
-auto set_value_fallback_via_keyboard(IUIAutomationElement *const element, const std::wstring_view value) -> HRESULT {
+auto set_value_fallback_via_keyboard(IUIAutomationElement *const element, const std::wstring_view value) -> HRESULT
+{
     if (!element) return E_INVALIDARG;
 
     const HRESULT hr_focus = element->SetFocus();
@@ -130,19 +165,25 @@ auto set_value_fallback_via_keyboard(IUIAutomationElement *const element, const 
 }
 
 Condition::Condition(IUIAutomationCondition *const p) noexcept
-    : Com_Pointer(p) {}
+    : Com_Pointer(p)
+{
+}
 
 Value_Pattern::Value_Pattern(IUIAutomationValuePattern *const p) noexcept
-    : Com_Pointer(p) {}
+    : Com_Pointer(p)
+{
+}
 
-auto Value_Pattern::set_value(const std::wstring_view text) const -> bool {
+auto Value_Pattern::set_value(const std::wstring_view text) const -> bool
+{
     if (!pointer) return false;
 
     const _bstr_t bstr_text(std::wstring(text.begin(), text.end()).c_str());
     return SUCCEEDED(pointer->SetValue(bstr_text));
 }
 
-auto Value_Pattern::get_value() const -> std::optional<std::wstring> {
+auto Value_Pattern::get_value() const -> std::optional<std::wstring>
+{
     if (!pointer) return {};
 
     BSTR valueBSTR = nullptr;
@@ -154,14 +195,18 @@ auto Value_Pattern::get_value() const -> std::optional<std::wstring> {
 }
 
 Toggle_Pattern::Toggle_Pattern(IUIAutomationTogglePattern *const p) noexcept
-    : Com_Pointer(p) {}
+    : Com_Pointer(p)
+{
+}
 
-auto Toggle_Pattern::toggle() const -> bool {
+auto Toggle_Pattern::toggle() const -> bool
+{
     if (!pointer) return false;
     return SUCCEEDED(pointer->Toggle());
 }
 
-auto Toggle_Pattern::get_toggle_state() const -> std::optional<ToggleState> {
+auto Toggle_Pattern::get_toggle_state() const -> std::optional<ToggleState>
+{
     if (!pointer) return {};
 
     ToggleState state;
@@ -170,24 +215,31 @@ auto Toggle_Pattern::get_toggle_state() const -> std::optional<ToggleState> {
 }
 
 Invoke_Pattern::Invoke_Pattern(IUIAutomationInvokePattern *const p) noexcept
-    : Com_Pointer(p) {}
+    : Com_Pointer(p)
+{
+}
 
-auto Invoke_Pattern::invoke() const -> bool {
+auto Invoke_Pattern::invoke() const -> bool
+{
     if (!pointer) return false;
     return SUCCEEDED(pointer->Invoke());
 }
 
 Element::Element(IUIAutomationElement *const element_ptr, IUIAutomation *const automation_ptr) noexcept
     : Com_Pointer(element_ptr)
-    , automation_raw_ptr_(automation_ptr) {}
+    , automation_raw_ptr_(automation_ptr)
+{
+}
 
 Element::Element(Element &&other) noexcept
     : Com_Pointer(std::move(other))
-    , automation_raw_ptr_(other.automation_raw_ptr_) {
+    , automation_raw_ptr_(other.automation_raw_ptr_)
+{
     other.automation_raw_ptr_ = nullptr;
 }
 
-auto Element::operator=(Element &&other) noexcept -> Element & {
+auto Element::operator=(Element &&other) noexcept -> Element &
+{
     if (this != std::addressof(other)) {
         static_cast<Com_Pointer<IUIAutomationElement> &>(*this) = static_cast<Com_Pointer<IUIAutomationElement> &&>(other);
         automation_raw_ptr_ = other.automation_raw_ptr_;
@@ -197,7 +249,8 @@ auto Element::operator=(Element &&other) noexcept -> Element & {
 }
 
 auto Element::create_and_find_with_timeout(IUIAutomationElement *const search_root, const Condition &search_condition,
-                                           const TreeScope scope, const std::chrono::seconds timeout) const -> std::optional<Element> {
+                                           const TreeScope scope, const std::chrono::seconds timeout) const -> std::optional<Element>
+{
     if (!search_root || !automation_raw_ptr_ || !search_condition) return {};
     const auto end_time = std::chrono::high_resolution_clock::now() + timeout;
 
@@ -224,13 +277,15 @@ auto Element::create_and_find_with_timeout(IUIAutomationElement *const search_ro
     return {}; // timed out
 }
 
-auto Element::find_first(const TreeScope tree_scope, const Condition &condition) -> Element {
+auto Element::find_first(const TreeScope tree_scope, const Condition &condition) -> Element
+{
     IUIAutomationElement *found_raw_element = nullptr;
     if (pointer) { std::ignore = pointer->FindFirst(tree_scope, condition.pointer, &found_raw_element); }
     return Element(found_raw_element, automation_raw_ptr_);
 }
 
-auto Element::set_focus() const -> bool {
+auto Element::set_focus() const -> bool
+{
     if (!pointer) {
         std::wcerr << L"Error: element is null, cant set focus\n";
         return false;
@@ -244,7 +299,8 @@ auto Element::set_focus() const -> bool {
     return true;
 }
 
-auto Element::get_native_window_handle() const -> HWND {
+auto Element::get_native_window_handle() const -> HWND
+{
     if (!pointer) {
         std::wcerr << L"Error: element is null, no window handle\n";
         return nullptr;
@@ -257,7 +313,8 @@ auto Element::get_native_window_handle() const -> HWND {
 
 auto Element::try_find_by_property_and_type(const std::wstring_view name_or_id, const PROPERTYID property_id,
                                             const Condition &type_condition, const std::chrono::seconds timeout) const
-    -> std::optional<Element> {
+    -> std::optional<Element>
+{
 
     IUIAutomationCondition *raw_prop_condition = nullptr;
     const _variant_t prop_variant(name_or_id.data());
@@ -274,16 +331,19 @@ auto Element::try_find_by_property_and_type(const std::wstring_view name_or_id, 
 }
 
 auto Element::try_find_by_automation_id_and_type(const std::wstring_view id_or_name, const Condition &type_condition,
-                                                 const std::chrono::seconds timeout) const -> std::optional<Element> {
+                                                 const std::chrono::seconds timeout) const -> std::optional<Element>
+{
     return try_find_by_property_and_type(id_or_name, UIA_AutomationIdPropertyId, type_condition, timeout);
 }
 
 auto Element::try_find_by_name_and_type(const std::wstring_view id_or_name, const Condition &type_condition,
-                                        const std::chrono::seconds timeout) const -> std::optional<Element> {
+                                        const std::chrono::seconds timeout) const -> std::optional<Element>
+{
     return try_find_by_property_and_type(id_or_name, UIA_NamePropertyId, type_condition, timeout);
 }
 
-auto Element::find_element_by_id_or_name(const std::wstring_view id_or_name, std::chrono::seconds timeout) const -> std::optional<Element> {
+auto Element::find_element_by_id_or_name(const std::wstring_view id_or_name, std::chrono::seconds timeout) const -> std::optional<Element>
+{
     if (!pointer || !automation_raw_ptr_) return {};
 
     // try finding by automation id first
@@ -302,7 +362,8 @@ auto Element::find_element_by_id_or_name(const std::wstring_view id_or_name, std
 }
 
 auto Element::find_control_by_id_or_name_and_type(const std::wstring_view id_or_name, const CONTROLTYPEID control_type_id,
-                                                  const std::chrono::seconds timeout) const -> std::optional<Element> {
+                                                  const std::chrono::seconds timeout) const -> std::optional<Element>
+{
 
     if (!pointer || !automation_raw_ptr_) return {};
 
@@ -316,11 +377,13 @@ auto Element::find_control_by_id_or_name_and_type(const std::wstring_view id_or_
 }
 
 auto Element::find_input_field_by_name(const std::wstring_view id_or_name, const std::chrono::seconds timeout) const
-    -> std::optional<Element> {
+    -> std::optional<Element>
+{
     return find_control_by_id_or_name_and_type(id_or_name, UIA_EditControlTypeId, timeout);
 }
 
-auto Element::set_text(const std::wstring_view text) const -> bool {
+auto Element::set_text(const std::wstring_view text) const -> bool
+{
     if (!pointer) {
         std::wcerr << L"Error: element is null, cant set text\n";
         return false;
@@ -339,13 +402,14 @@ auto Element::set_text(const std::wstring_view text) const -> bool {
     return false;
 }
 
-auto Element::find_checkbox_by_name(const std::wstring_view id_or_name, const std::chrono::seconds timeout) const
-    -> std::optional<Element> {
+auto Element::find_checkbox_by_name(const std::wstring_view id_or_name, const std::chrono::seconds timeout) const -> std::optional<Element>
+{
     return find_control_by_id_or_name_and_type(id_or_name, UIA_CheckBoxControlTypeId, timeout);
 }
 
 auto Element::toggle_checkbox_by_name(const std::wstring_view id_or_name, const bool checked, const std::chrono::seconds timeout) const
-    -> bool {
+    -> bool
+{
     const auto checkbox_element = find_checkbox_by_name(id_or_name, timeout);
     if (!checkbox_element) return false;
 
@@ -364,11 +428,13 @@ auto Element::toggle_checkbox_by_name(const std::wstring_view id_or_name, const 
     return true;
 }
 
-auto Element::find_button_by_name(const std::wstring_view id_or_name, const std::chrono::seconds timeout) const -> std::optional<Element> {
+auto Element::find_button_by_name(const std::wstring_view id_or_name, const std::chrono::seconds timeout) const -> std::optional<Element>
+{
     return find_control_by_id_or_name_and_type(id_or_name, UIA_ButtonControlTypeId, timeout);
 }
 
-auto Element::click() const -> bool {
+auto Element::click() const -> bool
+{
     if (const auto invoke_pattern = get_invoke_pattern()) {
         static_cast<void>(set_focus());
         return invoke_pattern->invoke();
@@ -378,7 +444,8 @@ auto Element::click() const -> bool {
     return false;
 }
 
-Automation::Automation() {
+Automation::Automation()
+{
     const HRESULT hr = CoCreateInstance(CLSID_CUIAutomation, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pointer));
     if (FAILED(hr)) {
         std::wcerr << L"Error: failed to CoCreateInstance IUIAutomation: HRESULT=" << std::hex << hr << L'\n';
@@ -386,7 +453,8 @@ Automation::Automation() {
     }
 }
 
-auto Automation::get_root_element() const -> Element {
+auto Automation::get_root_element() const -> Element
+{
     IUIAutomationElement *raw_element = nullptr;
     if (pointer) { pointer->GetRootElement(&raw_element); }
     if (!raw_element) { std::wcerr << L"Error: failed to get root element\n"; }
@@ -394,7 +462,8 @@ auto Automation::get_root_element() const -> Element {
     return Element(raw_element, const_cast<IUIAutomation *>(pointer));
 }
 
-auto Automation::get_element_from_handle(HWND handle) const -> std::optional<Element> {
+auto Automation::get_element_from_handle(HWND handle) const -> std::optional<Element>
+{
     if (!pointer) {
         std::wcerr << L"Error: Automation not initialized for get_element_from_handle\n";
         return {};
@@ -406,7 +475,8 @@ auto Automation::get_element_from_handle(HWND handle) const -> std::optional<Ele
     return Element(raw_element, const_cast<IUIAutomation *>(pointer));
 }
 
-auto Automation::create_property_condition(PROPERTYID property_id, const std::wstring_view value) const -> Condition {
+auto Automation::create_property_condition(PROPERTYID property_id, const std::wstring_view value) const -> Condition
+{
     IUIAutomationCondition *raw_condition = nullptr;
     if (pointer) {
         const _variant_t var_value(std::wstring(value).c_str());
@@ -416,7 +486,8 @@ auto Automation::create_property_condition(PROPERTYID property_id, const std::ws
     return Condition(raw_condition);
 }
 
-auto Automation::create_control_type_condition(CONTROLTYPEID control_type_id) const -> Condition {
+auto Automation::create_control_type_condition(CONTROLTYPEID control_type_id) const -> Condition
+{
     IUIAutomationCondition *raw_condition = nullptr;
     if (pointer) {
         _variant_t type_var;
@@ -430,7 +501,8 @@ auto Automation::create_control_type_condition(CONTROLTYPEID control_type_id) co
     return Condition(raw_condition);
 }
 
-auto Automation::create_and_condition(const Condition &condition1, const Condition &condition2) const -> Condition {
+auto Automation::create_and_condition(const Condition &condition1, const Condition &condition2) const -> Condition
+{
     IUIAutomationCondition *raw_and_condition = nullptr;
     if (pointer && condition1 && condition2) pointer->CreateAndCondition(condition1.get(), condition2.get(), &raw_and_condition);
     if (!raw_and_condition) std::wcerr << L"Error: failed to create AND condition\n";
@@ -438,23 +510,32 @@ auto Automation::create_and_condition(const Condition &condition1, const Conditi
     return Condition(raw_and_condition);
 }
 
-Co_Instance::Co_Instance() {
+Co_Instance::Co_Instance()
+{
     const HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     ok = (hr == S_OK || hr == S_FALSE);
     if (!ok) std::wcerr << L"Error: CoInitializeEx failed with HRESULT: " << std::hex << hr << L'\n';
 }
 
-Co_Instance::~Co_Instance() {
+Co_Instance::~Co_Instance()
+{
     if (ok) CoUninitialize();
 }
 
-Co_Instance::operator bool() const { return ok; }
+Co_Instance::operator bool() const
+{
+    return ok;
+}
 
-auto UIA_Operation_Error::print() const -> void { std::wcerr << L"UIA Error: [" << static_cast<int>(code) << L"] " << message << L'\n'; }
+auto UIA_Operation_Error::print() const -> void
+{
+    std::wcerr << L"UIA Error: [" << static_cast<int>(code) << L"] " << message << L'\n';
+}
 
 UIA_Application::UIA_Application(const std::wstring_view window_name, const std::chrono::seconds timeout)
     : co_init_{}
-    , automation_{} {
+    , automation_{}
+{
 
     if (!co_init_) {
         set_error(UIA_Error_Code::COM_INIT_FAILED, L"COM init failed");
@@ -489,12 +570,19 @@ UIA_Application::UIA_Application(const std::wstring_view window_name, const std:
     std::wcout << L"UIA_Application: initialized and found target window '" << window_name << L"'\n";
 }
 
-auto UIA_Application::is_ready() const noexcept -> bool { return target_window_.has_value(); }
+auto UIA_Application::is_ready() const noexcept -> bool
+{
+    return target_window_.has_value();
+}
 
-auto UIA_Application::get_last_error() const noexcept -> std::optional<UIA_Operation_Error> { return last_error_; }
+auto UIA_Application::get_last_error() const noexcept -> std::optional<UIA_Operation_Error>
+{
+    return last_error_;
+}
 
 auto UIA_Application::set_text_in_field(const std::wstring_view field_name, const std::wstring_view text,
-                                        const std::chrono::seconds timeout) -> UIA_Result<bool> {
+                                        const std::chrono::seconds timeout) -> UIA_Result<bool>
+{
     if (!is_ready()) { return std::unexpected(UIA_Operation_Error{UIA_Error_Code::AUTOMATION_INIT_FAILED, L"UIA_Application not ready"}); }
 
     const auto field_element = target_window_->find_input_field_by_name(field_name, timeout);
@@ -512,7 +600,8 @@ auto UIA_Application::set_text_in_field(const std::wstring_view field_name, cons
 }
 
 auto UIA_Application::toggle_checkbox(const std::wstring_view checkbox_name, const bool checked, const std::chrono::seconds timeout)
-    -> UIA_Result<bool> {
+    -> UIA_Result<bool>
+{
     if (!is_ready()) { return std::unexpected(UIA_Operation_Error{UIA_Error_Code::AUTOMATION_INIT_FAILED, L"UIA_Application not ready"}); }
 
     if (!target_window_->toggle_checkbox_by_name(checkbox_name, checked, timeout)) {
@@ -523,7 +612,8 @@ auto UIA_Application::toggle_checkbox(const std::wstring_view checkbox_name, con
     return true;
 }
 
-auto UIA_Application::click_button(const std::wstring_view button_name, const std::chrono::seconds timeout) -> UIA_Result<bool> {
+auto UIA_Application::click_button(const std::wstring_view button_name, const std::chrono::seconds timeout) -> UIA_Result<bool>
+{
     if (!is_ready()) { return std::unexpected(UIA_Operation_Error{UIA_Error_Code::AUTOMATION_INIT_FAILED, L"UIA_Application not ready"}); }
 
     const auto button_element = target_window_->find_button_by_name(button_name, timeout);
@@ -540,7 +630,8 @@ auto UIA_Application::click_button(const std::wstring_view button_name, const st
     return true;
 }
 
-auto UIA_Application::set_focus_to_element(const std::wstring_view element_name, std::chrono::seconds timeout) -> UIA_Result<bool> {
+auto UIA_Application::set_focus_to_element(const std::wstring_view element_name, std::chrono::seconds timeout) -> UIA_Result<bool>
+{
     if (!is_ready()) {
         const auto message = L"UIA_Application not ready";
         return std::unexpected(UIA_Operation_Error{UIA_Error_Code::AUTOMATION_INIT_FAILED, message});
@@ -560,7 +651,8 @@ auto UIA_Application::set_focus_to_element(const std::wstring_view element_name,
     return true;
 }
 
-auto UIA_Application::send_key_to_window(const int virtual_key_code) -> UIA_Result<bool> {
+auto UIA_Application::send_key_to_window(const int virtual_key_code) -> UIA_Result<bool>
+{
     if (!is_ready()) {
         const auto message = L"UIA_Application not ready";
         return std::unexpected(UIA_Operation_Error{UIA_Error_Code::AUTOMATION_INIT_FAILED, message});
@@ -581,7 +673,8 @@ auto UIA_Application::send_key_to_window(const int virtual_key_code) -> UIA_Resu
     return true;
 }
 
-auto UIA_Application::send_string_to_window(const std::wstring_view text) -> UIA_Result<bool> {
+auto UIA_Application::send_string_to_window(const std::wstring_view text) -> UIA_Result<bool>
+{
     if (!is_ready()) {
         const auto message = L"UIA_Application not ready";
         return std::unexpected(UIA_Operation_Error{UIA_Error_Code::AUTOMATION_INIT_FAILED, message});
@@ -600,7 +693,8 @@ auto UIA_Application::send_string_to_window(const std::wstring_view text) -> UIA
     return true;
 }
 
-auto UIA_Application::set_error(const UIA_Error_Code code, const std::wstring_view message) -> void {
+auto UIA_Application::set_error(const UIA_Error_Code code, const std::wstring_view message) -> void
+{
     last_error_ = UIA_Operation_Error{code, std::wstring(message)};
     last_error_->print();
 }

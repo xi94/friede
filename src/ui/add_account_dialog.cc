@@ -13,7 +13,9 @@
 
 namespace ui {
 
-Add_Account_Dialog::Add_Account_Dialog(QWidget *parent) : QDialog(parent) {
+Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
+    : QDialog(parent)
+{
     setWindowTitle("Add New Account");
 
     constexpr int dialog_width = 250;
@@ -38,7 +40,8 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent) : QDialog(parent) {
     auto *label_username = new QLabel{"Username", this};
     line_edit_username = new QLineEdit{this};
     line_edit_username->setPlaceholderText("Enter your username");
-    line_edit_username->setStyleSheet("QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    line_edit_username->setStyleSheet(
+        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
 
     main_layout->addWidget(label_username);
     main_layout->addWidget(line_edit_username);
@@ -47,7 +50,8 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent) : QDialog(parent) {
     line_edit_password = new QLineEdit{this};
     line_edit_password->setEchoMode(QLineEdit::Password);
     line_edit_password->setPlaceholderText("Enter your password");
-    line_edit_password->setStyleSheet("QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    line_edit_password->setStyleSheet(
+        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
 
     main_layout->addWidget(label_password);
     main_layout->addWidget(line_edit_password);
@@ -76,8 +80,8 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent) : QDialog(parent) {
             border: 1px solid #666666;
             border-radius: 4px;
             padding: 8px 0px;
-            height: )" +
-                            QString::number(button_height) + R"(px;
+            height: )" + QString::number(button_height) +
+                              R"(px;
         }
         QPushButton:hover {
             background-color: #666666;
@@ -101,15 +105,18 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent) : QDialog(parent) {
     connect(button_box, &QDialogButtonBox::rejected, this, &Add_Account_Dialog::reject);
 }
 
-auto Add_Account_Dialog::get_note() const -> QString {
+auto Add_Account_Dialog::get_note() const -> QString
+{
     return line_edit_note->text();
 }
 
-auto Add_Account_Dialog::get_username() const -> QString {
+auto Add_Account_Dialog::get_username() const -> QString
+{
     return line_edit_username->text();
 }
 
-auto Add_Account_Dialog::get_password() const -> QString {
+auto Add_Account_Dialog::get_password() const -> QString
+{
     return line_edit_password->text();
 }
 

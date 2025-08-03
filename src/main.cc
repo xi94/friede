@@ -2,11 +2,12 @@
 
 #include <QApplication>
 
-auto main(int argc, char *argv[]) -> int {
+auto main(int argc, char *argv[]) -> int
+{
     auto app = QApplication{argc, argv};
 
     app.setApplicationName("friede");
-    app.setApplicationVersion("1.1.4");
+    app.setApplicationVersion("1.2.0");
 
     auto window = ui::Window{};
     window.show();

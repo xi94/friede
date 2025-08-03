@@ -22,7 +22,8 @@ class Password_Table_Widget final : public QTableWidgetItem {
      * @param role The data role to retrieve.
      * @return The data associated with the specified role.
      */
-    auto data(int role) const -> QVariant override {
+    auto data(int role) const -> QVariant override
+    {
         if (role == Qt::EditRole) { return QTableWidgetItem::data(Qt::UserRole); }
         return QTableWidgetItem::data(role);
     }

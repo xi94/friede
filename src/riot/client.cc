@@ -24,21 +24,26 @@ static constexpr std::array<std::wstring_view, 6> RIOT_PROCESS_NAMES = {L"Riot C
                                                                         L"LeagueClient.exe"sv, L"LeagueClientUx.exe"sv};
 
 Client::Client(std::string client_path)
-    : path_{std::move(client_path)} {}
+    : path_{std::move(client_path)}
+{
+}
 
-auto Client::create() -> Result<Client> {
+auto Client::create() -> Result<Client>
+{
     auto client_path_result = find_client_path();
     if (!client_path_result) { return std::unexpected(client_path_result.error()); }
 
     return Client(*client_path_result);
 }
 
-auto Client::connect_to_window(const std::chrono::seconds timeout) -> bool {
+auto Client::connect_to_window(const std::chrono::seconds timeout) -> bool
+{
     uia_ = std::make_unique<platform::UIA_Application>(L"Riot Client", timeout);
     return uia_->is_ready();
 }
 
-auto Client::is_alive() const -> bool {
+auto Client::is_alive() const -> bool
+{
     bool found = false;
 
     std::ignore = for_each_riot_process([&found](const PROCESSENTRY32W &) {
@@ -49,9 +54,13 @@ auto Client::is_alive() const -> bool {
     return found;
 }
 
-auto Client::is_ready() const -> bool { return uia_ && uia_->is_ready(); }
+auto Client::is_ready() const -> bool
+{
+    return uia_ && uia_->is_ready();
+}
 
-auto Client::login(const std::string_view username, const std::string_view password, bool remember_me) -> Result<void> {
+auto Client::login(const std::string_view username, const std::string_view password, bool remember_me) -> Result<void>
+{
     if (!is_ready()) { return std::unexpected(Client_Error::Automation_Failed); }
 
     const auto wide_username = std::wstring{username.begin(), username.end()};
@@ -66,7 +75,8 @@ auto Client::login(const std::string_view username, const std::string_view passw
     return {};
 }
 
-auto Client::find_client_path() -> Result<std::string> {
+auto Client::find_client_path() -> Result<std::string>
+{
     char *program_data_path = nullptr;
     size_t len = 0;
     if (_dupenv_s(&program_data_path, &len, "PROGRAMDATA") != 0 || !program_data_path) {
@@ -82,12 +92,15 @@ auto Client::find_client_path() -> Result<std::string> {
     try {
         auto data = json::parse(settings_file);
         if (data.contains("rc_default") && data["rc_default"].is_string()) { return data["rc_default"].get<std::string>(); }
-    } catch (const json::parse_error &) { return std::unexpected(Client_Error::JSON_Parse_Failed); }
+    } catch (const json::parse_error &) {
+        return std::unexpected(Client_Error::JSON_Parse_Failed);
+    }
 
     return std::unexpected(Client_Error::RC_Default_Key_Not_Found);
 }
 
-auto Client::start(Game game) -> Result<void> {
+auto Client::start(Game game) -> Result<void>
+{
     std::string command = "\"" + path_ + "\" --launch-product=" + std::string(get_game_parameter_id(game)) + " --launch-patchline=live";
 
     auto si = STARTUPINFOA{};
@@ -104,7 +117,8 @@ auto Client::start(Game game) -> Result<void> {
     return {};
 }
 
-auto Client::kill() -> Result<void> {
+auto Client::kill() -> Result<void>
+{
     bool process_killed = false;
 
     auto kill_result = for_each_riot_process([&process_killed](const PROCESSENTRY32W &process_entry) {
@@ -125,7 +139,8 @@ auto Client::kill() -> Result<void> {
     return std::unexpected(Client_Error::Process_Termination_Failed);
 }
 
-auto Client::get_game_parameter_id(Game game) -> std::string_view {
+auto Client::get_game_parameter_id(Game game) -> std::string_view
+{
     switch (game) {
     case Game::Valorant: return "valorant"sv;
     case Game::Legends_of_Runeterra: return "bacon"sv;
@@ -137,7 +152,8 @@ auto Client::get_game_parameter_id(Game game) -> std::string_view {
     return ""sv; // shouldnt happen
 }
 
-auto Client::for_each_riot_process(const std::function<bool(const PROCESSENTRY32W &)> &callback) const -> Result<void> {
+auto Client::for_each_riot_process(const std::function<bool(const PROCESSENTRY32W &)> &callback) const -> Result<void>
+{
     auto snapshot = Scoped_Handle{CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0), &::CloseHandle};
     if (snapshot.get() == INVALID_HANDLE_VALUE) return std::unexpected(Client_Error::Snapshot_Creation_Failed);
 

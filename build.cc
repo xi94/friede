@@ -1,9 +1,7 @@
 #include <talon/talon.hpp>
 
-#include <algorithm>
 #include <format>
 #include <string_view>
-#include <vector>
 
 namespace fs = std::filesystem;
 using namespace std::literals;
@@ -97,10 +95,7 @@ auto set_build_options(const talon::arguments &args, talon::workspace *workspace
 
     if (args.contains("release")) {
         opts->optimization = talon::speed;
-
-        // build release without the debug console
-        workspace->additional_linker_flags.push_back("/SUBSYSTEM:WINDOWS");
-        workspace->additional_linker_flags.push_back("/ENTRY:mainCRTStartup");
+        workspace->add_linker_flags("/SUBSYSTEM:WINDOWS", "/ENTRY:mainCRTStartup");
     }
 }
 

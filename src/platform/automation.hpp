@@ -22,7 +22,8 @@ concept Com_Interface = !std::is_pointer_v<T> && std::is_base_of_v<IUnknown, T>;
  * @class Com_Pointer
  * @brief A move-only smart pointer for managing the lifetime of COM interfaces.
  */
-template <Com_Interface T> struct Com_Pointer {
+template <Com_Interface T>
+struct Com_Pointer {
     T *pointer;
 
     Com_Pointer() noexcept;
@@ -104,17 +105,20 @@ struct Element final : public Com_Pointer<IUIAutomationElement> {
         -> std::optional<Element>;
 
     /// @brief Gets the ValuePattern for this element, if supported.
-    [[nodiscard]] auto get_value_pattern() const -> std::optional<Value_Pattern> {
+    [[nodiscard]] auto get_value_pattern() const -> std::optional<Value_Pattern>
+    {
         return get_pattern<Value_Pattern, IUIAutomationValuePattern>(UIA_ValuePatternId);
     }
 
     /// @brief Gets the TogglePattern for this element, if supported.
-    [[nodiscard]] auto get_toggle_pattern() const -> std::optional<Toggle_Pattern> {
+    [[nodiscard]] auto get_toggle_pattern() const -> std::optional<Toggle_Pattern>
+    {
         return get_pattern<Toggle_Pattern, IUIAutomationTogglePattern>(UIA_TogglePatternId);
     }
 
     /// @brief Gets the InvokePattern for this element, if supported.
-    [[nodiscard]] auto get_invoke_pattern() const -> std::optional<Invoke_Pattern> {
+    [[nodiscard]] auto get_invoke_pattern() const -> std::optional<Invoke_Pattern>
+    {
         return get_pattern<Invoke_Pattern, IUIAutomationInvokePattern>(UIA_InvokePatternId);
     }
 
@@ -126,7 +130,8 @@ struct Element final : public Com_Pointer<IUIAutomationElement> {
 
   private:
     template <typename PatternWrapper, typename RawPatternInterface>
-    [[nodiscard]] auto get_pattern(PATTERNID pattern_id) const -> std::optional<PatternWrapper> {
+    [[nodiscard]] auto get_pattern(PATTERNID pattern_id) const -> std::optional<PatternWrapper>
+    {
         if (!pointer) return {};
 
         RawPatternInterface *raw_pattern = nullptr;
@@ -194,7 +199,8 @@ struct UIA_Operation_Error {
 };
 
 /// @brief A result type for UIA operations.
-template <typename T> using UIA_Result = std::expected<T, UIA_Operation_Error>;
+template <typename T>
+using UIA_Result = std::expected<T, UIA_Operation_Error>;
 
 /**
  * @class UIA_Application

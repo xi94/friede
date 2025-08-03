@@ -141,7 +141,10 @@ Window::~Window()
     worker_thread_.wait();
 }
 
-auto Window::on_login_progress_update(const QString &message) -> void { label_progress_status_->setText(message); }
+auto Window::on_login_progress_update(const QString &message) -> void
+{
+    label_progress_status_->setText(message);
+}
 
 auto Window::on_login_finished(bool success, const QString &message) -> void
 {
@@ -538,7 +541,10 @@ auto Window::handle_account_cell_updated(int row, int column) -> void
     }
 }
 
-auto Window::reset_account_selection() -> void { table_accounts_->setCurrentCell(-1, -1); }
+auto Window::reset_account_selection() -> void
+{
+    table_accounts_->setCurrentCell(-1, -1);
+}
 
 auto Window::update_bottom_bar_content(riot::Game game) -> void
 {

@@ -18,11 +18,17 @@ namespace core {
 
 Config::Config(QObject *parent)
     : QObject{parent}
-    , config_path_{initialize_config_path()} {}
+    , config_path_{initialize_config_path()}
+{
+}
 
-auto Config::get_config_directory_path() const -> QString { return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation); }
+auto Config::get_config_directory_path() const -> QString
+{
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+}
 
-auto Config::initialize_config_path() -> QString {
+auto Config::initialize_config_path() -> QString
+{
     const QString appdata_path = get_config_directory_path();
     if (appdata_path.isEmpty()) {
         QMessageBox::critical(nullptr, "Config Error", "Failed to get AppData directory path.");
@@ -57,7 +63,8 @@ auto Config::initialize_config_path() -> QString {
     return config_file_path;
 }
 
-auto Config::load_config_from_file() const -> toml::table {
+auto Config::load_config_from_file() const -> toml::table
+{
     if (config_path_.isEmpty()) return {};
 
     auto result = toml::parse_file(config_path_.toStdString());
@@ -70,7 +77,8 @@ auto Config::load_config_from_file() const -> toml::table {
     return std::move(result).table();
 }
 
-auto Config::save_config_to_file(const toml::table &config) -> bool {
+auto Config::save_config_to_file(const toml::table &config) -> bool
+{
     if (config_path_.isEmpty()) return false;
 
     try {
@@ -90,7 +98,8 @@ auto Config::save_config_to_file(const toml::table &config) -> bool {
     return true;
 }
 
-auto Config::get_accounts() const -> QVector<Account> {
+auto Config::get_accounts() const -> QVector<Account>
+{
     QVector<Account> accounts_list;
     auto config = load_config_from_file();
 
@@ -112,7 +121,8 @@ auto Config::get_accounts() const -> QVector<Account> {
     return accounts_list;
 }
 
-auto Config::add_account(const Account &account) -> bool {
+auto Config::add_account(const Account &account) -> bool
+{
     auto config = load_config_from_file();
     if (config.empty()) return false;
 
@@ -131,7 +141,8 @@ auto Config::add_account(const Account &account) -> bool {
     return save_config_to_file(config);
 }
 
-auto Config::update_account(int index, const Account &account) -> bool {
+auto Config::update_account(int index, const Account &account) -> bool
+{
     auto config = load_config_from_file();
     if (config.empty()) return false;
 
@@ -148,7 +159,8 @@ auto Config::update_account(int index, const Account &account) -> bool {
     return save_config_to_file(config);
 }
 
-auto Config::remove_account(int index) -> bool {
+auto Config::remove_account(int index) -> bool
+{
     auto config = load_config_from_file();
     if (config.empty()) return false;
 

@@ -35,7 +35,8 @@ enum class Client_Error {
 };
 
 /// @brief Converts a Client_Error enum to a user-readable string.
-constexpr inline auto client_error_as_string(Client_Error error) -> std::string_view {
+constexpr inline auto client_error_as_string(Client_Error error) -> std::string_view
+{
     using E = Client_Error;
     using namespace std::string_view_literals;
 
@@ -53,7 +54,8 @@ constexpr inline auto client_error_as_string(Client_Error error) -> std::string_
     }
 }
 
-template <typename T> using Result = std::expected<T, Client_Error>;
+template <typename T>
+using Result = std::expected<T, Client_Error>;
 
 /**
  * @class Client

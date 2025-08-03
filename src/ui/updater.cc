@@ -24,9 +24,12 @@ namespace ui {
 Updater::Updater(QWidget *parent)
     : QObject{parent}
     , parent_widget_{parent}
-    , network_manager_{new QNetworkAccessManager{this}} {}
+    , network_manager_{new QNetworkAccessManager{this}}
+{
+}
 
-auto Updater::check_for_updates() -> void {
+auto Updater::check_for_updates() -> void
+{
     const auto url = QUrl{"https://raw.githubusercontent.com/xi94/friede/main/appcast.xml"};
     const auto request = QNetworkRequest{url};
 
@@ -34,7 +37,8 @@ auto Updater::check_for_updates() -> void {
     connect(reply, &QNetworkReply::finished, this, [this, reply] { on_update_check_finished(reply); });
 }
 
-auto Updater::on_update_check_finished(QNetworkReply *reply) -> void {
+auto Updater::on_update_check_finished(QNetworkReply *reply) -> void
+{
     const bool reply_has_error = reply->error() != QNetworkReply::NoError;
     if (reply_has_error) {
         QMessageBox::critical(parent_widget_, "Updater", "Failed to check for updates: " + reply->errorString());
@@ -83,7 +87,8 @@ auto Updater::on_update_check_finished(QNetworkReply *reply) -> void {
     }
 }
 
-auto Updater::download_and_run_installer(const QUrl &url) -> void {
+auto Updater::download_and_run_installer(const QUrl &url) -> void
+{
     const auto request = QNetworkRequest{url};
     installer_download_reply_ = network_manager_->get(request);
 
@@ -103,7 +108,8 @@ auto Updater::download_and_run_installer(const QUrl &url) -> void {
     connect(progress_dialog, &QProgressDialog::canceled, installer_download_reply_, &QNetworkReply::abort);
 }
 
-auto Updater::on_installer_download_finished() -> void {
+auto Updater::on_installer_download_finished() -> void
+{
     const bool download_reply_has_error = installer_download_reply_->error() != QNetworkReply::NoError;
     if (download_reply_has_error) {
         const bool user_cancelled_download = installer_download_reply_->error() == QNetworkReply::OperationCanceledError;
