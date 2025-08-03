@@ -19,7 +19,21 @@
 namespace riot {
 
 /// @brief Represents the specific Riot Games that can be launched.
-enum class Game { League_of_Legends, Valorant, Teamfight_Tactics, Legends_of_Runeterra };
+enum class Game { League_of_Legends = 0, Valorant = 1, Teamfight_Tactics = 2, Legends_of_Runeterra = 3 };
+
+/// @brief A helper to ensure that an int32 index is within range of the enum
+constexpr inline auto is_game_index_out_of_range(const int index) -> bool
+{
+    using E = Game;
+
+    switch (static_cast<Game>(index)) {
+    case E::League_of_Legends:
+    case E::Valorant:
+    case E::Teamfight_Tactics:
+    case E::Legends_of_Runeterra: return false;
+    default: return true;
+    }
+}
 
 /// @brief Defines error codes for Client operations.
 enum class Client_Error {

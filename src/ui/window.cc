@@ -248,35 +248,28 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
         desired_banner_width = static_cast<int>(desired_banner_height / aspect_ratio);
     }
 
-    const int IMAGE_BORDER_PADDING = 2;
     for (int i = 0; i < layout_menu_->count(); ++i) {
         auto *button = qobject_cast<QPushButton *>(layout_menu_->itemAt(i)->widget());
-        if (button) {
-            riot::Game current_game;
-            switch (i) {
-            case 0: current_game = riot::Game::League_of_Legends; break;
-            case 1: current_game = riot::Game::Valorant; break;
-            case 2: current_game = riot::Game::Teamfight_Tactics; break;
-            case 3: current_game = riot::Game::Legends_of_Runeterra; break;
-            default: continue;
-            }
+        if (!button) continue;
 
-            const auto original_pixmap = original_banner_pixmaps_[current_game];
-            if (!original_pixmap.isNull()) {
-                const auto banner_width = desired_banner_width;
-                const auto banner_height = desired_banner_height;
-                const auto scaled_pixmap =
-                    original_pixmap.scaled(banner_width, banner_height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                button->setIcon(QIcon{scaled_pixmap});
+        if (riot::is_game_index_out_of_range(i)) continue;
+        const auto current_game = static_cast<riot::Game>(i);
 
-                const auto image_display_size = scaled_pixmap.size();
-                button->setIconSize(image_display_size);
+        const auto original_pixmap = original_banner_pixmaps_[current_game];
+        if (original_pixmap.isNull()) continue;
 
-                const auto button_width = image_display_size.width() + (2 * IMAGE_BORDER_PADDING);
-                const auto button_height = image_display_size.height() + (2 * IMAGE_BORDER_PADDING);
-                button->setFixedSize(QSize{button_width, button_height});
-            }
-        }
+        const auto banner_width = desired_banner_width;
+        const auto banner_height = desired_banner_height;
+        const auto scaled_pixmap = original_pixmap.scaled(banner_width, banner_height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        button->setIcon(QIcon{scaled_pixmap});
+
+        const auto image_display_size = scaled_pixmap.size();
+        button->setIconSize(image_display_size);
+
+        constexpr int image_border_padding = 2;
+        const auto button_width = image_display_size.width() + (2 * image_border_padding);
+        const auto button_height = image_display_size.height() + (2 * image_border_padding);
+        button->setFixedSize(QSize{button_width, button_height});
     }
 
     layout_menu_->blockSignals(false);

@@ -36,6 +36,7 @@ auto Com_Pointer<T>::operator=(Com_Pointer &&other) noexcept -> Com_Pointer &
 {
     if (this != std::addressof(other)) {
         if (pointer) pointer->Release();
+
         pointer = other.pointer;
         other.pointer = nullptr;
     }
@@ -48,21 +49,25 @@ auto Com_Pointer<T>::operator->() noexcept -> T *
 {
     return pointer;
 }
+
 template <Com_Interface T>
 auto Com_Pointer<T>::operator->() const noexcept -> const T *
 {
     return pointer;
 }
+
 template <Com_Interface T>
 auto Com_Pointer<T>::get() const noexcept -> T *
 {
     return pointer;
 }
+
 template <Com_Interface T>
 Com_Pointer<T>::operator bool() const noexcept
 {
     return pointer != nullptr;
 }
+
 template <Com_Interface T>
 auto Com_Pointer<T>::operator&() noexcept -> T **
 {
@@ -70,6 +75,7 @@ auto Com_Pointer<T>::operator&() noexcept -> T **
         pointer->Release();
         pointer = nullptr;
     }
+
     return &pointer;
 }
 
