@@ -2,6 +2,19 @@
 // riot/client.hpp
 // =================================================================================
 
+// FIXME there is a strange issue with uia detecting the client properly after recently starting ur pc,
+//
+//       if i could take a guess, i would assume it has something to do with vanguard...
+//       and us running on a lower end of the permission bracket,
+//       as this can also happen whilst the riot client is actively updating itself.
+//
+//       if that is the case, setting the manifest flag 'uiAccess' to true...
+//       could potentially help, but this requires code signing in order for it to work.
+//
+//       otherwise, a backup strategy could be to try to find a handle to the client window,
+//       and then creating a uia handle through the client windows handle, instead of enumerating the desktop.
+//       but this method comes with its own drawbacks, which is why it would be a backup strategy.
+
 #pragma once
 
 #include "platform/automation.hpp"
