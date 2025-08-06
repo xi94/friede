@@ -18,12 +18,9 @@ namespace platform {
 template <class T>
 concept Com_Interface = !std::is_pointer_v<T> && std::is_base_of_v<IUnknown, T>;
 
-/**
- * @class Com_Pointer
- * @brief A move-only smart pointer for managing the lifetime of COM interfaces.
- */
-template <Com_Interface T>
-struct Com_Pointer {
+/// @class Com_Pointer
+/// @brief A move-only smart pointer for managing the lifetime of COM interfaces.
+template <Com_Interface T> struct Com_Pointer {
     T *pointer;
 
     Com_Pointer() noexcept;
@@ -49,7 +46,10 @@ struct Com_Pointer {
 struct Element;
 struct Automation;
 
+/// @brief Simulates keyboard input to send a wide string.
 auto send_string_via_keyboard(const std::wstring_view str) -> void;
+
+/// @brief A fallback mechanism to set an element's value via simulated keyboard input.
 auto set_value_fallback_via_keyboard(IUIAutomationElement *const element, const std::wstring_view value) -> HRESULT;
 
 /// @brief Wraps an IUIAutomationCondition interface used for finding elements.
@@ -77,10 +77,8 @@ struct Invoke_Pattern final : public Com_Pointer<IUIAutomationInvokePattern> {
     auto invoke() const -> bool;
 };
 
-/**
- * @class Element
- * @brief Represents a single UI element, providing methods for discovery and interaction.
- */
+/// @class Element
+/// @brief Represents a single UI element, providing methods for discovery and interaction.
 struct Element final : public Com_Pointer<IUIAutomationElement> {
     IUIAutomation *automation_raw_ptr_;
 
@@ -106,18 +104,21 @@ struct Element final : public Com_Pointer<IUIAutomationElement> {
 
     /// @brief Gets the ValuePattern for this element, if supported.
     [[nodiscard]] auto get_value_pattern() const -> std::optional<Value_Pattern>
+
     {
         return get_pattern<Value_Pattern, IUIAutomationValuePattern>(UIA_ValuePatternId);
     }
 
     /// @brief Gets the TogglePattern for this element, if supported.
     [[nodiscard]] auto get_toggle_pattern() const -> std::optional<Toggle_Pattern>
+
     {
         return get_pattern<Toggle_Pattern, IUIAutomationTogglePattern>(UIA_TogglePatternId);
     }
 
     /// @brief Gets the InvokePattern for this element, if supported.
     [[nodiscard]] auto get_invoke_pattern() const -> std::optional<Invoke_Pattern>
+
     {
         return get_pattern<Invoke_Pattern, IUIAutomationInvokePattern>(UIA_InvokePatternId);
     }
@@ -129,8 +130,10 @@ struct Element final : public Com_Pointer<IUIAutomationElement> {
     auto click() const -> bool;
 
   private:
+    /// @brief Generic method to retrieve a specific UI Automation pattern for this element.
     template <typename PatternWrapper, typename RawPatternInterface>
     [[nodiscard]] auto get_pattern(PATTERNID pattern_id) const -> std::optional<PatternWrapper>
+
     {
         if (!pointer) return {};
 
@@ -150,10 +153,8 @@ struct Element final : public Com_Pointer<IUIAutomationElement> {
                                                  std::chrono::seconds timeout) const -> std::optional<Element>;
 };
 
-/**
- * @class Automation
- * @brief The root object for UIA operations, used to access the element tree.
- */
+/// @class Automation
+/// @brief The root object for UIA operations, used to access the element tree.
 struct Automation final : public Com_Pointer<IUIAutomation> {
     Automation();
     [[nodiscard]] auto get_root_element() const -> Element;
@@ -163,10 +164,8 @@ struct Automation final : public Com_Pointer<IUIAutomation> {
     [[nodiscard]] auto create_and_condition(const Condition &condition1, const Condition &condition2) const -> Condition;
 };
 
-/**
- * @class Co_Instance
- * @brief An RAII wrapper for COM library initialization on a thread.
- */
+/// @class Co_Instance
+/// @brief An RAII wrapper for COM library initialization on a thread.
 struct Co_Instance {
     bool ok = false;
     explicit operator bool() const;
@@ -199,15 +198,15 @@ struct UIA_Operation_Error {
 };
 
 /// @brief A result type for UIA operations.
-template <typename T>
-using UIA_Result = std::expected<T, UIA_Operation_Error>;
+template <typename T> using UIA_Result = std::expected<T, UIA_Operation_Error>;
 
-/**
- * @class UIA_Application
- * @brief A high-level wrapper to find and automate a specific application window.
- */
+/// @class UIA_Application
+/// @brief A high-level wrapper to find and automate a specific application window.
 class UIA_Application {
   public:
+    /// @brief Constructs the UIA application wrapper.
+    /// @param window_name The name of the target window to find.
+    /// @param timeout The maximum time to wait for the window to appear.
     [[nodiscard]] explicit UIA_Application(const std::wstring_view window_name, std::chrono::seconds timeout = std::chrono::seconds(20));
 
     /// @brief Returns true if the object is initialized and attached to the target window.
@@ -238,12 +237,14 @@ class UIA_Application {
     auto send_string_to_window(const std::wstring_view text) -> UIA_Result<bool>;
 
   private:
+    /// @brief Sets the last error state for this object.
+    auto set_error(UIA_Error_Code code, const std::wstring_view message) -> void;
+
+  private:
     Co_Instance co_init_;
     Automation automation_;
     std::optional<Element> target_window_;
     std::optional<UIA_Operation_Error> last_error_;
-
-    auto set_error(UIA_Error_Code code, const std::wstring_view message) -> void;
 };
 
 } // namespace platform

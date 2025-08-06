@@ -46,10 +46,9 @@ auto Config::initialize_config_path(const QString file_name) -> QString
         return {};
     }
 
-    const QString config_file_path = appdata_dir.absoluteFilePath(file_name); // configuration.toml
+    const QString config_file_path = appdata_dir.absoluteFilePath(file_name);
     if (QFile::exists(config_file_path)) { return config_file_path; }
 
-    // create a default config file if it doesnt exist
     auto config_file = QFile{config_file_path};
     if (!config_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QMessageBox::critical(nullptr, "Config Error", "Failed to create config: " + config_file_path);
@@ -65,7 +64,6 @@ auto Config::load() const -> toml::table
 
     auto result = toml::parse_file(config_path_.toStdString());
     if (!result) {
-        // an empty file is not an error, it just means no config is set
         if (std::string_view{result.error().description()}.find("The file was empty"sv) != std::string_view::npos) { return {}; }
 
         const auto message =

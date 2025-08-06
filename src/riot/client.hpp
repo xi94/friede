@@ -2,11 +2,6 @@
 // riot/client.hpp
 // =================================================================================
 
-// FIXME there is a strange issue with uia detecting the client properly after recently starting ur pc
-
-// TODO/FIXME figure out a way to prevent killing the client if it is updating,
-//            as this appears to have a possibility of causing VAN (8 - 21) errors (problems with the riot client)
-
 #pragma once
 
 #include "platform/automation.hpp"
@@ -26,7 +21,7 @@ namespace riot {
 /// @brief Represents the specific Riot Games that can be launched.
 enum class Game { League_of_Legends = 0, Valorant = 1, Teamfight_Tactics = 2, Legends_of_Runeterra = 3 };
 
-/// @brief A helper to ensure that an int32 index is within range of the enum
+/// @brief Checks if an integer index is a valid Game enum value.
 constexpr inline auto is_game_index_out_of_range(const int index) -> bool
 {
     using E = Game;
@@ -73,12 +68,11 @@ constexpr inline auto client_error_as_string(Client_Error error) -> std::string_
     }
 }
 
+/// @brief A result type for Client operations that can return a value or an error.
 template <typename T> using Result = std::expected<T, Client_Error>;
 
-/**
- * @class Client
- * @brief Provides an interface for automating the Riot Games client.
- */
+/// @class Client
+/// @brief Provides an interface for automating the Riot Games client.
 class Client {
   public:
     /// @brief Creates a Client instance by locating the Riot Client installation.
@@ -94,7 +88,7 @@ class Client {
     auto kill() -> Result<void>;
 
     /// @brief Executes the UI login sequence using the provided credentials.
-    auto login(std::string_view username, std::string_view password, bool remember_me = false) -> Result<void>; // <-- Corrected return type
+    auto login(std::string_view username, std::string_view password, bool remember_me = false) -> Result<void>;
 
     /// @brief Checks if any Riot Client processes are currently running.
     [[nodiscard]] auto is_alive() const -> bool;
@@ -103,12 +97,19 @@ class Client {
     [[nodiscard]] auto is_ready() const -> bool;
 
   private:
+    /// @brief Constructs a Client instance with a given path.
     explicit Client(std::string client_path);
 
+    /// @brief Locates the Riot Client executable path from system configuration files.
     [[nodiscard]] static auto find_client_path() -> Result<std::string>;
+
+    /// @brief Gets the command-line parameter ID for a given game.
     [[nodiscard]] static auto get_game_parameter_id(Game game) -> std::string_view;
+
+    /// @brief Iterates over all running Riot-related processes.
     auto for_each_riot_process(const std::function<bool(const PROCESSENTRY32W &)> &callback) const -> Result<void>;
 
+  private:
     std::string path_;
     std::unique_ptr<platform::UIA_Application> uia_;
 };

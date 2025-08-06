@@ -7,6 +7,7 @@
 #include "core/account.hpp"
 #include "core/theme.hpp"
 #include "riot/client.hpp"
+#include "theme_editor.hpp"
 #include "ui/login_worker.hpp"
 #include "updater.hpp"
 
@@ -39,14 +40,14 @@ namespace ui {
 /// @brief Represents the pages available in the main stacked widget.
 enum class Page { Home, Accounts, Progress };
 
-/**
- * @class Window
- * @brief The main application window. Manages the UI and user interaction.
- */
+/// @class Window
+/// @brief The main application window. Manages the UI and user interaction.
 class Window final : public QMainWindow {
     Q_OBJECT
 
   public:
+    /// @brief Constructs the main window.
+    /// @param parent The parent widget.
     explicit Window(QWidget *parent = nullptr);
     ~Window();
 
@@ -58,12 +59,10 @@ class Window final : public QMainWindow {
     auto keyPressEvent(QKeyEvent *event) -> void override;
 
   signals:
-    /**
-     * @brief Signals the worker thread to begin a login attempt.
-     * @param game The target game to launch.
-     * @param username The account username.
-     * @param password The account password.
-     */
+    /// @brief Signals the worker thread to begin a login attempt.
+    /// @param game The target game to launch.
+    /// @param username The account username.
+    /// @param password The account password.
     auto start_login(riot::Game game, const QString &username, const QString &password) -> void;
 
   private slots:
@@ -73,7 +72,64 @@ class Window final : public QMainWindow {
     /// @brief Slot to handle the result of a completed login attempt.
     auto on_login_finished(bool success, const QString &message) -> void;
 
+    /// @brief Reloads the account data from the config and repopulates the table.
     auto refresh_accounts_table() -> void;
+
+  private:
+    /// @brief Generates the full stylesheet string from the current theme.
+    /// @param theme The theme data to use for generating color styles.
+    /// @return A single QString containing all application styles.
+    auto generate_stylesheet(const core::Theme &theme) -> QString;
+
+    /// @brief Applies the current theme to the application.
+    auto apply_theme() -> void;
+
+  private:
+    // Event Handlers
+    /// @brief Handles the click event for the "Customize Theme" menu action.
+    auto handle_customize_theme_button_click() -> void;
+
+    /// @brief Handles the click event for the home/back button.
+    auto handle_home_button_click() -> void;
+
+    /// @brief Handles the click event for a game banner on the home page.
+    auto handle_game_banner_click(riot::Game game) -> void;
+
+    /// @brief Handles selection changes in the accounts table.
+    auto handle_table_selection_changed() -> void;
+
+    /// @brief Handles the click event for the main login button.
+    auto handle_login_button_click() -> void;
+
+    /// @brief Handles the click event for the "Add Account" button.
+    auto handle_add_account_button_click() -> void;
+
+    /// @brief Handles the click event for the "Remove Account" button.
+    auto handle_remove_account_button_click() -> void;
+
+    /// @brief Handles data changes within a cell of the accounts table.
+    auto handle_account_cell_updated(int row, int column) -> void;
+
+    // UI Setup
+    /// @brief Sets up UI elements common to all pages (e.g., top bar).
+    auto setup_common_ui() -> void;
+
+    /// @brief Sets up the home page with game selection banners.
+    auto setup_home_page() -> void;
+
+    /// @brief Sets up the accounts page with the accounts table.
+    auto setup_accounts_page() -> void;
+
+    // UI Updates
+    /// @brief Clears the current selection in the accounts table.
+    auto reset_account_selection() -> void;
+
+    /// @brief Updates the bottom bar content based on the selected game.
+    auto update_bottom_bar_content(riot::Game game) -> void;
+
+    // Helpers
+    /// @brief Creates a styled QPushButton for a game banner.
+    auto create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *;
 
   private:
     // UI Widgets
@@ -108,30 +164,6 @@ class Window final : public QMainWindow {
     QThread worker_thread_;
     QMap<riot::Game, QPixmap> original_banner_pixmaps_;
     QVector<core::Account> current_accounts_;
-
-    auto generate_stylesheet(const core::Theme &theme) -> QString;
-    auto apply_theme() -> void;
-
-    // Event Handlers
-    auto handle_home_button_click() -> void;
-    auto handle_game_banner_click(riot::Game game) -> void;
-    auto handle_table_selection_changed() -> void;
-    auto handle_login_button_click() -> void;
-    auto handle_add_account_button_click() -> void;
-    auto handle_remove_account_button_click() -> void;
-    auto handle_account_cell_updated(int row, int column) -> void;
-
-    // UI Setup
-    auto setup_common_ui() -> void;
-    auto setup_home_page() -> void;
-    auto setup_accounts_page() -> void;
-
-    // UI Updates
-    auto reset_account_selection() -> void;
-    auto update_bottom_bar_content(riot::Game game) -> void;
-
-    // Helpers
-    auto create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *;
 };
 
 } // namespace ui

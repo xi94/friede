@@ -4,11 +4,11 @@
 
 #include "automation.hpp"
 
-#include <comutil.h>  // for _variant_t, _bstr_t
-#include <iostream>   // for std::wcout, std::wcerr
-#include <memory>     // for std::addressof
-#include <thread>     // for std::this_thread::sleep_for
-#include <winerror.h> // for HRESULT codes like S_FALSE
+#include <comutil.h>
+#include <iostream>
+#include <memory>
+#include <thread>
+#include <winerror.h>
 
 namespace platform {
 
@@ -31,8 +31,7 @@ Com_Pointer<T>::Com_Pointer(Com_Pointer &&other) noexcept
     other.pointer = nullptr;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::operator=(Com_Pointer &&other) noexcept -> Com_Pointer &
+template <Com_Interface T> auto Com_Pointer<T>::operator=(Com_Pointer &&other) noexcept -> Com_Pointer &
 {
     if (this != std::addressof(other)) {
         if (pointer) pointer->Release();
@@ -44,32 +43,27 @@ auto Com_Pointer<T>::operator=(Com_Pointer &&other) noexcept -> Com_Pointer &
     return *this;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::operator->() noexcept -> T *
+template <Com_Interface T> auto Com_Pointer<T>::operator->() noexcept -> T *
 {
     return pointer;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::operator->() const noexcept -> const T *
+template <Com_Interface T> auto Com_Pointer<T>::operator->() const noexcept -> const T *
 {
     return pointer;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::get() const noexcept -> T *
+template <Com_Interface T> auto Com_Pointer<T>::get() const noexcept -> T *
 {
     return pointer;
 }
 
-template <Com_Interface T>
-Com_Pointer<T>::operator bool() const noexcept
+template <Com_Interface T> Com_Pointer<T>::operator bool() const noexcept
 {
     return pointer != nullptr;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::operator&() noexcept -> T **
+template <Com_Interface T> auto Com_Pointer<T>::operator&() noexcept -> T **
 {
     if (pointer) {
         pointer->Release();
@@ -79,23 +73,20 @@ auto Com_Pointer<T>::operator&() noexcept -> T **
     return &pointer;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::attach(T *const p) noexcept -> void
+template <Com_Interface T> auto Com_Pointer<T>::attach(T *const p) noexcept -> void
 {
     if (pointer) pointer->Release();
     pointer = p;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::detach() noexcept -> T *
+template <Com_Interface T> auto Com_Pointer<T>::detach() noexcept -> T *
 {
     T *const p = pointer;
     pointer = nullptr;
     return p;
 }
 
-template <Com_Interface T>
-auto Com_Pointer<T>::reset() noexcept -> void
+template <Com_Interface T> auto Com_Pointer<T>::reset() noexcept -> void
 {
     if (pointer) {
         pointer->Release();
@@ -103,8 +94,7 @@ auto Com_Pointer<T>::reset() noexcept -> void
     }
 }
 
-template <Com_Interface T>
-Com_Pointer<T>::~Com_Pointer()
+template <Com_Interface T> Com_Pointer<T>::~Com_Pointer()
 {
     if (pointer) {
         pointer->Release();
@@ -155,9 +145,8 @@ auto set_value_fallback_via_keyboard(IUIAutomationElement *const element, const 
     SetForegroundWindow(hwnd);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    // ctrl+a, delete
     std::array<INPUT, 4> inputs_clear = {{{INPUT_KEYBOARD, {0, VK_CONTROL, 0, 0, 0}},
-                                          {INPUT_KEYBOARD, {0, 0x41 /*'A'*/, 0, 0, 0}},
+                                          {INPUT_KEYBOARD, {0, 0x41, 0, 0, 0}},
                                           {INPUT_KEYBOARD, {0, VK_CONTROL, 0, KEYEVENTF_KEYUP, 0}},
                                           {INPUT_KEYBOARD, {0, VK_DELETE, 0, 0, 0}}}};
 
@@ -280,7 +269,7 @@ auto Element::create_and_find_with_timeout(IUIAutomationElement *const search_ro
         std::this_thread::sleep_for(std::chrono::milliseconds{150});
     }
 
-    return {}; // timed out
+    return {};
 }
 
 auto Element::find_first(const TreeScope tree_scope, const Condition &condition) -> Element
@@ -352,13 +341,11 @@ auto Element::find_element_by_id_or_name(const std::wstring_view id_or_name, std
 {
     if (!pointer || !automation_raw_ptr_) return {};
 
-    // try finding by automation id first
     auto aid_condition = Automation().create_property_condition(UIA_AutomationIdPropertyId, id_or_name);
     if (aid_condition) {
         if (auto found = create_and_find_with_timeout(pointer, aid_condition, TreeScope_Descendants, timeout)) { return found; }
     }
 
-    // if failed, try by name instead
     auto name_condition = Automation().create_property_condition(UIA_NamePropertyId, id_or_name);
     if (name_condition) {
         if (auto found = create_and_find_with_timeout(pointer, name_condition, TreeScope_Descendants, timeout)) { return found; }
@@ -419,7 +406,6 @@ auto Element::toggle_checkbox_by_name(const std::wstring_view id_or_name, const 
     const auto checkbox_element = find_checkbox_by_name(id_or_name, timeout);
     if (!checkbox_element) return false;
 
-    // not sure this is necessary
     checkbox_element->set_focus();
 
     const auto toggle_pattern = checkbox_element->get_toggle_pattern();

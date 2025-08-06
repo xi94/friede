@@ -10,14 +10,14 @@
 
 namespace ui {
 
-/**
- * @class Add_Account_Dialog
- * @brief A modal dialog for adding a new user account.
- */
+/// @class Add_Account_Dialog
+/// @brief A modal dialog for adding a new user account.
 class Add_Account_Dialog final : public QDialog {
     Q_OBJECT
 
   public:
+    /// @brief Constructs the add account dialog.
+    /// @param parent The parent widget.
     explicit Add_Account_Dialog(QWidget *parent = nullptr);
 
     /// @brief Returns the text from the note input field.
@@ -30,9 +30,9 @@ class Add_Account_Dialog final : public QDialog {
     auto get_password() const -> QString;
 
   private:
-    QLineEdit *line_edit_note;
-    QLineEdit *line_edit_username;
-    QLineEdit *line_edit_password;
+    QLineEdit *line_edit_note_;
+    QLineEdit *line_edit_username_;
+    QLineEdit *line_edit_password_;
 };
 
 } // namespace ui

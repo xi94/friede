@@ -12,10 +12,8 @@
 
 namespace core {
 
-/**
- * @class Config
- * @brief Base class for managing reading from and writing to TOML configuration files.
- */
+/// @class Config
+/// @brief Base class for managing TOML configuration files.
 class Config {
   public:
     virtual ~Config() = default;
@@ -27,6 +25,8 @@ class Config {
     auto get_config_directory_path() const -> QString;
 
   protected:
+    /// @brief Constructs the Config object.
+    /// @param file_name The name of the configuration file (e.g., "theme.toml").
     explicit Config(const QString file_name);
 
     /// @brief Reads the TOML file from disk into a toml::table.

@@ -1,0 +1,56 @@
+// =================================================================================
+// ui/theme_editor.hpp
+// =================================================================================
+
+#pragma once
+
+#include "core/theme.hpp"
+
+#include <QColorDialog>
+#include <QDialog>
+#include <QFormLayout>
+#include <QLabel>
+#include <QPushButton>
+
+namespace ui {
+
+/// @class Theme_Editor
+/// @brief A dialog for editing and previewing application themes.
+class Theme_Editor final : public QDialog {
+    Q_OBJECT
+
+  public:
+    /// @brief Constructs the theme editor dialog.
+    /// @param theme A reference to the theme object to be modified.
+    /// @param parent The parent widget.
+    explicit Theme_Editor(core::Theme &theme, QWidget *parent = nullptr);
+
+  private slots:
+    /// @brief Opens a color dialog when a color swatch button is clicked.
+    void on_color_button_clicked();
+
+    /// @brief Accepts the dialog, signaling that changes should be saved.
+    void on_save_button_clicked();
+
+    /// @brief Rejects the dialog, discarding any changes.
+    void on_cancel_button_clicked();
+
+  private:
+    /// @brief Creates a color picker widget and adds it to the form.
+    /// @param label The text label for the color picker.
+    /// @param color_ref A reference to the QColor object to be modified.
+    auto create_color_picker(const QString &label, QColor &color_ref) -> void;
+
+    /// @brief Updates the preview widgets with the current theme colors.
+    auto update_previews() -> void;
+
+  private:
+    QFormLayout *form_layout_;
+    QLabel *preview_label_;
+    QPushButton *preview_button_;
+
+    core::Theme &current_theme_;
+    QMap<QPushButton *, QColor *> color_map_;
+};
+
+} // namespace ui

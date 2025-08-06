@@ -30,31 +30,26 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     main_layout->setSpacing(widget_spacing);
 
     auto *label_note = new QLabel{"Note", this};
-    line_edit_note = new QLineEdit{this};
-    line_edit_note->setPlaceholderText("Enter a note (e.g., 'alt account')");
-    //    line_edit_note->setStyleSheet("QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    line_edit_note_ = new QLineEdit{this};
+    line_edit_note_->setPlaceholderText("Enter a note (e.g., 'alt account')");
 
     main_layout->addWidget(label_note);
-    main_layout->addWidget(line_edit_note);
+    main_layout->addWidget(line_edit_note_);
 
     auto *label_username = new QLabel{"Username", this};
-    line_edit_username = new QLineEdit{this};
-    line_edit_username->setPlaceholderText("Enter your username");
-    //    line_edit_username->setStyleSheet(
-    //        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    line_edit_username_ = new QLineEdit{this};
+    line_edit_username_->setPlaceholderText("Enter your username");
 
     main_layout->addWidget(label_username);
-    main_layout->addWidget(line_edit_username);
+    main_layout->addWidget(line_edit_username_);
 
     auto *label_password = new QLabel{"Password", this};
-    line_edit_password = new QLineEdit{this};
-    line_edit_password->setEchoMode(QLineEdit::Password);
-    line_edit_password->setPlaceholderText("Enter your password");
-    //    line_edit_password->setStyleSheet(
-    //        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    line_edit_password_ = new QLineEdit{this};
+    line_edit_password_->setEchoMode(QLineEdit::Password);
+    line_edit_password_->setPlaceholderText("Enter your password");
 
     main_layout->addWidget(label_password);
-    main_layout->addWidget(line_edit_password);
+    main_layout->addWidget(line_edit_password_);
     main_layout->addSpacerItem(new QSpacerItem{20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding});
 
     auto *button_box = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
@@ -64,7 +59,6 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     constexpr int num_buttons = 2;
 
     constexpr int button_width = (usable_width - button_gap) / num_buttons;
-    constexpr int button_height = 10;
 
     button_box->setFixedWidth(usable_width);
     button_box->setContentsMargins(0, 0, 0, 0);
@@ -73,30 +67,6 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     button_box->button(QDialogButtonBox::Ok)->setFixedWidth(button_width);
     button_box->button(QDialogButtonBox::Cancel)->setFixedWidth(button_width);
 
-    /*
-    button_box->setStyleSheet(R"(
-        QPushButton {
-            background-color: #555555;
-            color: white;
-            border: 1px solid #666666;
-            border-radius: 4px;
-            padding: 8px 0px;
-            height: )" + QString::number(button_height) +
-                              R"(px;
-        }
-        QPushButton:hover {
-            background-color: #666666;
-        }
-        QPushButton:pressed {
-            background-color: #444444;
-        }
-        QPushButton:disabled {
-            background-color: #333333;
-            color: #aaaaaa;
-            border: 1px solid #444444;
-        }
-    )");
-    */
     auto *button_layout = new QHBoxLayout;
     button_layout->addStretch();
     button_layout->addWidget(button_box);
@@ -108,17 +78,18 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
 
 auto Add_Account_Dialog::get_note() const -> QString
 {
-    return line_edit_note->text();
+    return line_edit_note_->text();
 }
 
 auto Add_Account_Dialog::get_username() const -> QString
 {
-    return line_edit_username->text();
+
+    return line_edit_username_->text();
 }
 
 auto Add_Account_Dialog::get_password() const -> QString
 {
-    return line_edit_password->text();
+    return line_edit_password_->text();
 }
 
 } // namespace ui

@@ -46,10 +46,6 @@ auto Updater::on_update_check_finished(QNetworkReply *reply) -> void
         return;
     }
 
-    //
-    // parse installer url and latest version from the appcast xml
-    //
-
     QUrl installer_url;
     QString latest_version;
 
@@ -66,10 +62,6 @@ auto Updater::on_update_check_finished(QNetworkReply *reply) -> void
     }
 
     reply->deleteLater();
-
-    //
-    // compare versions and prompt user to update if newer
-    //
 
     if (latest_version.isEmpty()) {
         QMessageBox::critical(parent_widget_, "Updater", "Failed to get latest version");
@@ -122,10 +114,6 @@ auto Updater::on_installer_download_finished() -> void
         return;
     }
 
-    //
-    // attempt to run the downloaded installer
-    //
-
     const QString filename = QFileInfo{installer_download_reply_->url().path()}.fileName();
     const QString temporary_installer_path = QDir::tempPath() + "/" + filename;
     if (auto file = QFile{temporary_installer_path}; file.open(QIODevice::WriteOnly)) {
@@ -135,7 +123,6 @@ auto Updater::on_installer_download_finished() -> void
         QStringList args;
         args << "/SILENT" << "/DIR=" + QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
 
-        // here we run the installer and quit our application, so that it can get replaced and launched by the installer
         QProcess::startDetached(temporary_installer_path, args);
         QCoreApplication::quit();
     } else {

@@ -42,63 +42,6 @@ auto Client::connect_to_window(const std::chrono::seconds timeout) -> bool
     return uia_->is_ready();
 }
 
-auto Client::is_alive() const -> bool
-{
-    bool found = false;
-
-    std::ignore = for_each_riot_process([&found](const PROCESSENTRY32W &) {
-        found = true;
-        return false;
-    });
-
-    return found;
-}
-
-auto Client::is_ready() const -> bool
-{
-    return uia_ && uia_->is_ready();
-}
-
-auto Client::login(const std::string_view username, const std::string_view password, bool remember_me) -> Result<void>
-{
-    if (!is_ready()) { return std::unexpected(Client_Error::Automation_Failed); }
-
-    const auto wide_username = std::wstring{username.begin(), username.end()};
-    const auto wide_password = std::wstring{password.begin(), password.end()};
-
-    if (!uia_->set_text_in_field(L"username", wide_username)) return std::unexpected(Client_Error::Automation_Failed);
-    if (!uia_->set_text_in_field(L"password", wide_password)) return std::unexpected(Client_Error::Automation_Failed);
-    if (!uia_->toggle_checkbox(L"remember-me", remember_me)) return std::unexpected(Client_Error::Automation_Failed);
-    if (!uia_->set_focus_to_element(L"password")) return std::unexpected(Client_Error::Automation_Failed);
-    if (!uia_->send_key_to_window(VK_RETURN)) return std::unexpected(Client_Error::Automation_Failed);
-
-    return {};
-}
-
-auto Client::find_client_path() -> Result<std::string>
-{
-    char *program_data_path = nullptr;
-    size_t len = 0;
-    if (_dupenv_s(&program_data_path, &len, "PROGRAMDATA") != 0 || !program_data_path) {
-        return std::unexpected(Client_Error::Env_Var_Not_Found);
-    }
-
-    auto program_data_ptr = std::unique_ptr<char, decltype(&free)>(program_data_path, &free);
-
-    const auto settings_path = std::string(program_data_path) + "\\Riot Games\\RiotClientInstalls.json";
-    auto settings_file = std::ifstream(settings_path);
-    if (!settings_file.is_open()) { return std::unexpected(Client_Error::Installs_Json_Not_Found); }
-
-    try {
-        auto data = json::parse(settings_file);
-        if (data.contains("rc_default") && data["rc_default"].is_string()) { return data["rc_default"].get<std::string>(); }
-    } catch (const json::parse_error &) {
-        return std::unexpected(Client_Error::JSON_Parse_Failed);
-    }
-
-    return std::unexpected(Client_Error::RC_Default_Key_Not_Found);
-}
-
 auto Client::start(Game game) -> Result<void>
 {
     std::string command = "\"" + path_ + "\" --launch-product=" + std::string(get_game_parameter_id(game)) + " --launch-patchline=live";
@@ -139,6 +82,64 @@ auto Client::kill() -> Result<void>
     return std::unexpected(Client_Error::Process_Termination_Failed);
 }
 
+auto Client::login(const std::string_view username, const std::string_view password, bool remember_me) -> Result<void>
+{
+    if (!is_ready()) { return std::unexpected(Client_Error::Automation_Failed); }
+
+    const auto wide_username = std::wstring{username.begin(), username.end()};
+    const auto wide_password = std::wstring{password.begin(), password.end()};
+
+    if (!uia_->set_text_in_field(L"username", wide_username)) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->set_text_in_field(L"password", wide_password)) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->toggle_checkbox(L"remember-me", remember_me)) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->set_focus_to_element(L"password")) return std::unexpected(Client_Error::Automation_Failed);
+    if (!uia_->send_key_to_window(VK_RETURN)) return std::unexpected(Client_Error::Automation_Failed);
+
+    return {};
+}
+
+auto Client::is_alive() const -> bool
+{
+    bool found = false;
+
+    std::ignore = for_each_riot_process([&found](const PROCESSENTRY32W &) {
+        found = true;
+        return false;
+    });
+
+    return found;
+}
+
+auto Client::is_ready() const -> bool
+{
+    return uia_ && uia_->is_ready();
+}
+
+auto Client::find_client_path() -> Result<std::string>
+{
+    char *program_data_path = nullptr;
+    size_t len = 0;
+    if (_dupenv_s(&program_data_path, &len, "PROGRAMDATA") != 0 || !program_data_path) {
+        return std::unexpected(Client_Error::Env_Var_Not_Found);
+    }
+
+    auto program_data_ptr = std::unique_ptr<char, decltype(&free)>(program_data_path, &free);
+
+    const auto settings_path = std::string(program_data_path) + "\\Riot Games\\RiotClientInstalls.json";
+    auto settings_file = std::ifstream(settings_path);
+    if (!settings_file.is_open()) { return std::unexpected(Client_Error::Installs_Json_Not_Found); }
+
+    try {
+        auto data = json::parse(settings_file);
+        if (data.contains("rc_default") && data["rc_default"].is_string()) { return data["rc_default"].get<std::string>(); }
+
+    } catch (const json::parse_error &) {
+        return std::unexpected(Client_Error::JSON_Parse_Failed);
+    }
+
+    return std::unexpected(Client_Error::RC_Default_Key_Not_Found);
+}
+
 auto Client::get_game_parameter_id(Game game) -> std::string_view
 {
     switch (game) {
@@ -149,7 +150,7 @@ auto Client::get_game_parameter_id(Game game) -> std::string_view
     case Game::League_of_Legends: return "league_of_legends"sv;
     }
 
-    return ""sv; // shouldnt happen
+    return ""sv;
 }
 
 auto Client::for_each_riot_process(const std::function<bool(const PROCESSENTRY32W &)> &callback) const -> Result<void>
@@ -168,6 +169,7 @@ auto Client::for_each_riot_process(const std::function<bool(const PROCESSENTRY32
                     break;
                 }
             }
+
         } while (Process32NextW(snapshot.get(), &process_entry));
     }
 
