@@ -132,7 +132,6 @@ class Window final : public QMainWindow {
     auto create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *;
 
   private:
-    // UI Widgets
     QStackedWidget *widget_main_stacked_;
     QWidget *widget_menu_;
     QHBoxLayout *layout_menu_;
@@ -152,12 +151,10 @@ class Window final : public QMainWindow {
     QPushButton *button_add_account_;
     QPushButton *button_remove_account_;
 
-    // App management
     Updater *updater_;
     core::Theme_Config *theme_config_;
     core::Account_Config *account_config_;
 
-    // State & Data
     riot::Game current_game_;
     QString banners_dir_;
     QString game_icons_dir_;

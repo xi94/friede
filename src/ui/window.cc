@@ -320,17 +320,9 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "    background-color: transparent;"
                                 "    border-color: transparent;"
                                 "}"}
-                            .arg(theme.background_dark.name(),  // %1
-                                 theme.text_primary.name(),     // %2
-                                 theme.border.name(),           // %3
-                                 theme.button_primary.name(),   // %4
-                                 theme.button_hover.name(),     // %5
-                                 theme.button_disabled.name(),  // %6
-                                 theme.text_disabled.name(),    // %7
-                                 theme.background_light.name(), // %8
-                                 theme.accent.name(),           // %9
-                                 theme.accent_hover.name()      // %10
-                            );
+                            .arg(theme.background_dark.name(), theme.text_primary.name(), theme.border.name(), theme.button_primary.name(),
+                                 theme.button_hover.name(), theme.button_disabled.name(), theme.text_disabled.name(),
+                                 theme.background_light.name(), theme.accent.name(), theme.accent_hover.name());
 
     const auto layout = QString{"QWidget#widget_top_bar, QWidget#widget_bottom_bar {"
                                 "    border-style: solid;"
@@ -345,6 +337,9 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "QMenu::item {"
                                 "    padding: 4px 20px;"
                                 "}"
+                                "QPushButton, QLineEdit, QTableWidget, QHeaderView {"
+                                "    outline: none;"
+                                "}"
                                 "QPushButton {"
                                 "    border-style: solid;"
                                 "    border-width: 1px;"
@@ -354,12 +349,10 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "QPushButton#bannerButton {"
                                 "    border-width: 3px;"
                                 "    padding: 0px;"
-                                "    outline: none;"
                                 "}"
                                 "QPushButton#homeButton, QPushButton#optionsButton {"
                                 "    border: none;"
                                 "    padding: 2px;"
-                                "    outline: none;"
                                 "}"
                                 "QPushButton#optionsButton::menu-indicator {"
                                 "    image: none;"
@@ -367,7 +360,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "}"
                                 "QTableWidget::item {"
                                 "    border-style: solid;"
-                                "    border-bottom-width: 1px;"
+                                "    border-width: 0px 1px 1px 1px;"
                                 "}"
                                 "QHeaderView::section {"
                                 "    border: 1px solid;"
@@ -388,7 +381,9 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
 auto Window::apply_theme() -> void
 {
     const auto theme = theme_config_->load();
-    this->setStyleSheet(generate_stylesheet(theme));
+    const auto stylesheet = generate_stylesheet(theme);
+
+    QMainWindow::setStyleSheet(stylesheet);
 }
 
 auto Window::handle_customize_theme_button_click() -> void

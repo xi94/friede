@@ -9,8 +9,11 @@
 #include <QColorDialog>
 #include <QDialog>
 #include <QFormLayout>
+#include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
+#include <QTableWidget>
 
 namespace ui {
 
@@ -27,13 +30,13 @@ class Theme_Editor final : public QDialog {
 
   private slots:
     /// @brief Opens a color dialog when a color swatch button is clicked.
-    auto on_color_button_clicked() -> void;
+    void on_color_button_clicked();
 
     /// @brief Accepts the dialog, signaling that changes should be saved.
-    auto on_save_button_clicked() -> void;
+    void on_save_button_clicked();
 
     /// @brief Rejects the dialog, discarding any changes.
-    auto on_cancel_button_clicked() -> void;
+    void on_cancel_button_clicked();
 
   private:
     /// @brief Creates a color picker widget and adds it to the form.
@@ -46,8 +49,13 @@ class Theme_Editor final : public QDialog {
 
   private:
     QFormLayout *form_layout_;
+    QGroupBox *preview_group_;
     QLabel *preview_label_;
+    QLineEdit *preview_line_edit_;
+    QTableWidget *preview_table_;
     QPushButton *preview_button_;
+    QPushButton *preview_disabled_button_;
+    QLabel *preview_disabled_label_;
 
     core::Theme &current_theme_;
     QMap<QPushButton *, QColor *> color_map_;
