@@ -67,7 +67,7 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     button_box->button(QDialogButtonBox::Ok)->setFixedWidth(button_width);
     button_box->button(QDialogButtonBox::Cancel)->setFixedWidth(button_width);
 
-    auto *button_layout = new QHBoxLayout;
+    auto *button_layout = new QHBoxLayout{};
     button_layout->addStretch();
     button_layout->addWidget(button_box);
     main_layout->addLayout(button_layout);

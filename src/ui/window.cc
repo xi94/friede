@@ -31,14 +31,14 @@ namespace ui {
 Window::Window(QWidget *parent)
     : QMainWindow{parent}
     , widget_main_stacked_{new QStackedWidget{this}}
-    , widget_menu_{new QWidget}
+    , widget_menu_{new QWidget{}}
     , layout_menu_{new QHBoxLayout{widget_menu_}}
-    , widget_accounts_content_{new QWidget}
-    , label_accounts_{new QLabel}
+    , widget_accounts_content_{new QWidget{}}
+    , label_accounts_{new QLabel{}}
     , table_accounts_{new QTableWidget{0, 3}}
-    , widget_progress_page_{new QWidget}
+    , widget_progress_page_{new QWidget{}}
     , label_progress_status_{new QLabel{"Initializing..."}}
-    , label_progress_game_icon_{new QLabel}
+    , label_progress_game_icon_{new QLabel{}}
     , button_progress_back_{new QPushButton{"back"}}
     , widget_top_bar_{new QWidget{this}}
     , button_top_bar_home_{new QPushButton{"\tback", widget_top_bar_}}
@@ -54,7 +54,7 @@ Window::Window(QWidget *parent)
     , banners_dir_{QCoreApplication::applicationDirPath() + "/banners/"}
     , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"}
 {
-    auto *worker = new Login_Worker;
+    auto *worker = new Login_Worker{};
     worker->moveToThread(&worker_thread_);
 
     connect(&worker_thread_, &QThread::finished, worker, &QObject::deleteLater);
@@ -70,7 +70,7 @@ Window::Window(QWidget *parent)
     const auto available_geometry = QGuiApplication::primaryScreen()->availableGeometry();
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), available_geometry));
 
-    auto *main_window_layout = new QVBoxLayout;
+    auto *main_window_layout = new QVBoxLayout{};
     main_window_layout->setContentsMargins(0, 0, 0, 0);
     main_window_layout->setSpacing(0);
 
@@ -235,7 +235,7 @@ auto Window::refresh_accounts_table() -> void
         table_accounts_->setItem(row, 0, new QTableWidgetItem{account.note});
         table_accounts_->setItem(row, 1, new QTableWidgetItem{account.username});
 
-        auto *password_item = new Password_Table_Widget;
+        auto *password_item = new Password_Table_Widget{};
         password_item->setData(Qt::DisplayRole, QString("************"));
         password_item->setData(Qt::UserRole, account.password);
         table_accounts_->setItem(row, 2, password_item);
@@ -603,7 +603,7 @@ auto Window::setup_common_ui() -> void
     label_game_icon_placeholder_->setFixedSize(32, 32);
     label_game_icon_placeholder_->setContentsMargins(0, 0, 0, 0);
 
-    auto *game_info_layout = new QHBoxLayout;
+    auto *game_info_layout = new QHBoxLayout{};
     game_info_layout->addWidget(label_game_icon_placeholder_);
     game_info_layout->setContentsMargins(0, 0, 0, 0);
     game_info_layout->setSpacing(5);
