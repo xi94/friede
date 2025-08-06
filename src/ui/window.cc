@@ -142,7 +142,7 @@ Window::~Window()
     worker_thread_.wait();
 }
 
-// jjwp disoster
+// FIXME jjwp disoster
 auto Window::generate_stylesheet(const core::Theme &theme) -> QString
 {
     const auto colors = QString{"QMainWindow, QDialog, QWidget#central_widget, QWidget#widget_menu, QWidget#widget_accounts_content, "
