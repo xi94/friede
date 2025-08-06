@@ -67,6 +67,8 @@ Window::Window(QWidget *parent)
     setMinimumSize(750, 450);
     setWindowTitle("a flame alighteth");
 
+    QMainWindow::setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+
     const auto available_geometry = QGuiApplication::primaryScreen()->availableGeometry();
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), available_geometry));
 
