@@ -1,5 +1,5 @@
 // =================================================================================
-// window.cc
+// ui/window.cc
 // =================================================================================
 
 #include "ui/window.hpp"
@@ -25,22 +25,6 @@
 #include <iostream>
 #include <string>
 
-// --------------------
-// WINDOWS OWN COLORS
-// --------------------
-// SUPER  DARK  #151515
-// MIDDLE DARK  #191919
-// LIGHT  DARK  #202020
-// --------------------
-
-// --------------------
-// FILEPILOTS COLORS
-// --------------------
-// SUPER  DARK  #191b1c
-// MIDDLE DARK  #1f2223
-// LIGHT  DARK  #1f2223
-// --------------------
-
 namespace ui {
 
 Window::Window(QWidget *parent)
@@ -60,7 +44,8 @@ Window::Window(QWidget *parent)
     , button_top_bar_options_{new QPushButton{"", widget_top_bar_}}
     , widget_bottom_bar_{new QWidget{this}}
     , updater_{new Updater{this}}
-    , config_{new core::Config{"configuration.toml", this}}
+    , theme_config_{new core::Theme_Config{this}}
+    , account_config_{new core::Account_Config{this}}
     , label_game_icon_placeholder_{new QLabel{widget_bottom_bar_}}
     , button_login_{new QPushButton{"Login", widget_bottom_bar_}}
     , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}
@@ -138,12 +123,7 @@ Window::Window(QWidget *parent)
 
     auto *central_widget = new QWidget{this};
     central_widget->setLayout(main_window_layout);
-    central_widget->setStyleSheet("background-color: #191b1c");
-
     setCentralWidget(central_widget);
-
-    widget_top_bar_->setStyleSheet("background-color: #191b1c; border-bottom: 1px solid #333333;");
-    //    widget_top_bar_->setStyleSheet("background-color: #151515; border-bottom: 0.5px solid #FFFFFF");
 
     widget_bottom_bar_->hide();
     label_game_icon_placeholder_->hide();
@@ -152,6 +132,7 @@ Window::Window(QWidget *parent)
     button_remove_account_->hide();
     widget_top_bar_->show();
 
+    apply_theme();
     updater_->check_for_updates();
 }
 
@@ -159,6 +140,158 @@ Window::~Window()
 {
     worker_thread_.quit();
     worker_thread_.wait();
+}
+
+// jjwp disoster
+auto Window::generate_stylesheet(const core::Theme &theme) -> QString
+{
+    const auto colors = QString{"QMainWindow, QDialog, QWidget#central_widget, QWidget#widget_menu, QWidget#widget_accounts_content, "
+                                "QWidget#widget_progress_page {"
+                                "    background-color: %1;"
+                                "    color: %2;"
+                                "}"
+                                "QWidget#widget_top_bar, QWidget#widget_bottom_bar {"
+                                "    background-color: %8;"
+                                "    border-color: %3;"
+                                "}"
+                                "QMenu {"
+                                "    background-color: %8;"
+                                "    color: %2;"
+                                "    border-color: %3;"
+                                "}"
+                                "QMenu::item:selected {"
+                                "    background-color: %5;"
+                                "}"
+                                "QPushButton {"
+                                "    background-color: %4;"
+                                "    color: %2;"
+                                "    border-color: %3;"
+                                "}"
+                                "QPushButton:hover {"
+                                "    background-color: %5;"
+                                "}"
+                                "QPushButton:disabled {"
+                                "    background-color: %6;"
+                                "    color: %7;"
+                                "    border-color: %3;"
+                                "}"
+                                "QPushButton#bannerButton {"
+                                "    background-color: transparent;"
+                                "    border-color: %9;"
+                                "}"
+                                "QPushButton#bannerButton:hover {"
+                                "    border-color: %10;"
+                                "}"
+                                "QPushButton#homeButton, QPushButton#optionsButton {"
+                                "    background-color: transparent;"
+                                "    border-color: transparent;"
+                                "}"
+                                "QPushButton#homeButton:hover, QPushButton#optionsButton:hover {"
+                                "    background-color: %5;"
+                                "}"
+                                "QTableWidget {"
+                                "    background-color: %1;"
+                                "    border-color: %3;"
+                                "    gridline-color: %3;"
+                                "}"
+                                "QTableWidget::item {"
+                                "    background-color: %1;"
+                                "    color: %2;"
+                                "    border-color: %3;"
+                                "}"
+                                "QTableWidget::item:hover, QTableWidget::item:selected {"
+                                "    background-color: %5;"
+                                "    color: %2;"
+                                "}"
+                                "QHeaderView::section {"
+                                "    background-color: %8;"
+                                "    color: %2;"
+                                "    border-color: %3;"
+                                "}"
+                                "QLineEdit {"
+                                "    background-color: %8;"
+                                "    color: %2;"
+                                "    border-color: %3;"
+                                "}"
+                                "QLabel#gameIconPlaceholder {"
+                                "    background-color: transparent;"
+                                "    border-color: transparent;"
+                                "}"}
+                            .arg(theme.background_dark.name(),  // %1
+                                 theme.text_primary.name(),     // %2
+                                 theme.border.name(),           // %3
+                                 theme.button_primary.name(),   // %4
+                                 theme.button_hover.name(),     // %5
+                                 theme.button_disabled.name(),  // %6
+                                 theme.text_disabled.name(),    // %7
+                                 theme.background_light.name(), // %8
+                                 theme.accent.name(),           // %9
+                                 theme.accent_hover.name()      // %10
+                            );
+
+    const auto layout = QString{"QWidget#widget_top_bar, QWidget#widget_bottom_bar {"
+                                "    border-style: solid;"
+                                "    border-top-width: 1px;"
+                                "    border-bottom-width: 1px;"
+                                "    border-left-width: 0px;"
+                                "    border-right-width: 0px;"
+                                "}"
+                                "QMenu {"
+                                "    border: 1px solid;"
+                                "}"
+                                "QMenu::item {"
+                                "    padding: 4px 20px;"
+                                "}"
+                                "QPushButton {"
+                                "    border-style: solid;"
+                                "    border-width: 1px;"
+                                "    padding: 5px 15px;"
+                                "    border-radius: 5px;"
+                                "}"
+                                "QPushButton#bannerButton {"
+                                "    border-width: 3px;"
+                                "    padding: 0px;"
+                                "    outline: none;"
+                                "}"
+                                "QPushButton#homeButton, QPushButton#optionsButton {"
+                                "    border: none;"
+                                "    padding: 2px;"
+                                "    outline: none;"
+                                "}"
+                                "QPushButton#optionsButton::menu-indicator {"
+                                "    image: none;"
+                                "    width: 0px;"
+                                "}"
+                                "QTableWidget::item {"
+                                "    border-style: solid;"
+                                "    border-bottom-width: 1px;"
+                                "}"
+                                "QHeaderView::section {"
+                                "    border: 1px solid;"
+                                "    padding: 4px;"
+                                "}"
+                                "QLineEdit {"
+                                "    border: 1px solid;"
+                                "    padding: 5px;"
+                                "    border-radius: 3px;"
+                                "}"
+                                "QLabel#gameIconPlaceholder {"
+                                "    border: none;"
+                                "}"};
+
+    return layout + colors;
+}
+auto Window::apply_theme() -> void
+{
+    const auto theme = theme_config_->load();
+    theme_config_->save(theme);
+
+    const QString colors = generate_stylesheet(theme);
+    const QString layout = "QPushButton { padding: 5px 15px; border-radius: 5px; }"
+                           "QHeaderView::section { padding: 4px; }"
+                           "QLineEdit { padding: 5px; border-radius: 3px; }";
+
+    this->setStyleSheet(layout + colors);
 }
 
 auto Window::on_login_progress_update(const QString &message) -> void
@@ -171,6 +304,7 @@ auto Window::on_login_finished(bool success, const QString &message) -> void
     label_progress_status_->setText(message);
     button_progress_back_->show();
 
+    // TODO uhh, leave for now? i think
     if (success) {
         label_progress_status_->setStyleSheet("color: #2ecc71; font-weight: bold;");
     } else {
@@ -187,7 +321,6 @@ auto Window::handle_login_button_click() -> void
     widget_bottom_bar_->hide();
 
     label_progress_status_->setText("Initializing...");
-    label_progress_status_->setStyleSheet("");
     button_progress_back_->hide();
 
     QString icon_filename;
@@ -215,11 +348,11 @@ auto Window::handle_login_button_click() -> void
 auto Window::create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *
 {
     auto *button = new QPushButton("", widget_menu_);
+    button->setObjectName("bannerButton");
+
     const QPixmap original_pixmap(banners_dir_ + image_path);
     original_banner_pixmaps_[game] = original_pixmap;
     button->setIcon(QIcon(original_pixmap));
-    button->setStyleSheet("QPushButton { border: 3px solid #5a5a5a; padding: 0px; background-color: transparent; outline: none; } "
-                          "QPushButton:hover { border: 3px solid #9a9a9a; }");
     return button;
 }
 
@@ -303,7 +436,6 @@ auto Window::keyPressEvent(QKeyEvent *event) -> void
 
 auto Window::setup_common_ui() -> void
 {
-    //    widget_top_bar_->setStyleSheet("background-color: #1c1c1c; border-bottom: 1px solid #d0d0d0; padding: 5px;");
     widget_top_bar_->setFixedHeight(40);
 
     auto *top_bar_layout = new QHBoxLayout(widget_top_bar_);
@@ -311,18 +443,9 @@ auto Window::setup_common_ui() -> void
     top_bar_layout->setSpacing(5);
 
     button_top_bar_home_->setIcon(QIcon::fromTheme("document-revert"));
-    button_top_bar_home_->setStyleSheet("QPushButton { border: none; padding: 2px; background-color: transparent; outline: none; } "
-                                        "QPushButton:hover { background-color: #3a3a3b; }");
-
     button_top_bar_options_->setIcon(QIcon::fromTheme("document-properties"));
-    button_top_bar_options_->setStyleSheet(
-        "QPushButton { border: none; padding: 2px; background-color: transparent; outline: none; } QPushButton:hover { background-color: "
-        "#3a3a3b; } QPushButton::menu-indicator { image: none; width: 0px; }");
 
     auto *options_menu = new QMenu(button_top_bar_options_);
-    options_menu->setStyleSheet("QMenu { background-color: #1f2223 color: white; border: 1px solid #555; } QMenu::item { padding: 4px "
-                                "20px; } QMenu::item:selected { background-color: #404040; }");
-
     auto *action_check_for_updates = options_menu->addAction("check for updates");
     action_check_for_updates->setIcon(QIcon::fromTheme("emblem-synchronized"));
     connect(action_check_for_updates, &QAction::triggered, updater_, &Updater::check_for_updates);
@@ -330,7 +453,7 @@ auto Window::setup_common_ui() -> void
     auto *action_open_directory = options_menu->addAction("open config directory");
     action_open_directory->setIcon(QIcon::fromTheme("folder-open"));
     connect(action_open_directory, &QAction::triggered, this, [this] {
-        const QString config_dir = config_->get_config_directory_path();
+        const QString config_dir = account_config_->get_config_directory_path();
         QDesktopServices::openUrl(QUrl::fromLocalFile(config_dir));
     });
 
@@ -352,26 +475,14 @@ auto Window::setup_common_ui() -> void
     auto *bottom_bar_layout = new QHBoxLayout{widget_bottom_bar_};
     bottom_bar_layout->setContentsMargins(10, 0, 15, 0);
     bottom_bar_layout->setSpacing(10);
-    button_login_->setStyleSheet("QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: white; "
-                                 "border-radius: 5px; outline: none; } QPushButton:hover { background-color: #4a4a4a; } "
-                                 "QPushButton:disabled { background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
-
-    button_add_account_->setStyleSheet("QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: "
-                                       "white; border-radius: 5px; outline: none; } QPushButton:hover { background-color: #4a4a4a; } "
-                                       "QPushButton:disabled { background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
 
     bottom_bar_layout->addWidget(button_login_);
     bottom_bar_layout->addWidget(button_add_account_);
-    button_remove_account_->setStyleSheet(
-        "QPushButton { border: 1px solid #5a5a5a; padding: 5px 15px; background-color: #3a3a3a; color: white; border-radius: 5px; outline: "
-        "none; } QPushButton:hover { background-color: #4a4a4a; } QPushButton:pressed { background-color: #c0392b; } QPushButton:disabled "
-        "{ background-color: #2a2a2a; color: #8a8a8a; border: 1px solid #4a4a4a; }");
-
     bottom_bar_layout->addWidget(button_remove_account_);
     bottom_bar_layout->addStretch();
 
     label_game_icon_placeholder_->setFixedSize(32, 32);
-    label_game_icon_placeholder_->setStyleSheet("QLabel { border: none; background-color: transparent; }");
+    //    label_game_icon_placeholder_->setStyleSheet("QLabel { border: none; background-color: transparent; }");
     label_game_icon_placeholder_->setContentsMargins(0, 0, 0, 0);
 
     auto *game_info_layout = new QHBoxLayout;
@@ -383,6 +494,10 @@ auto Window::setup_common_ui() -> void
     QObject::connect(button_login_, &QPushButton::clicked, this, &Window::handle_login_button_click);
     QObject::connect(button_add_account_, &QPushButton::clicked, this, &Window::handle_add_account_button_click);
     QObject::connect(button_remove_account_, &QPushButton::clicked, this, &Window::handle_remove_account_button_click);
+
+    button_top_bar_home_->setObjectName("homeButton");
+    button_top_bar_options_->setObjectName("optionsButton");
+    label_game_icon_placeholder_->setObjectName("gameIconPlaceholder");
 }
 
 auto Window::setup_home_page() -> void
@@ -428,7 +543,7 @@ auto Window::refresh_accounts_table() -> void
     table_accounts_->blockSignals(true);
 
     table_accounts_->setRowCount(0);
-    current_accounts_ = config_->get_accounts();
+    current_accounts_ = account_config_->get_accounts();
 
     for (const auto &account : current_accounts_) {
         const int row = table_accounts_->rowCount();
@@ -496,9 +611,10 @@ auto Window::handle_add_account_button_click() -> void
             return;
         }
 
-        if (config_->add_account(new_account)) {
+        if (account_config_->add_account(new_account)) {
             refresh_accounts_table();
             table_accounts_->setCurrentCell(table_accounts_->rowCount() - 1, 0);
+
         } else {
             QMessageBox::critical(this, "Add Account", "Failed to save the new account.");
         }
@@ -518,8 +634,9 @@ auto Window::handle_remove_account_button_click() -> void
     const auto reply = QMessageBox::warning(this, "Confirm Deletion", confirmation, QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::No) return;
 
-    if (config_->remove_account(current_row)) {
+    if (account_config_->remove_account(current_row)) {
         refresh_accounts_table();
+
     } else {
         QMessageBox::critical(this, "Deletion Error", "Failed to remove the account from the configuration file.");
     }
@@ -546,9 +663,10 @@ auto Window::handle_account_cell_updated(int row, int column) -> void
         break;
     }
 
-    if (!config_->update_account(row, updated_account)) {
+    if (!account_config_->update_account(row, updated_account)) {
         QMessageBox::critical(this, "Save Error", "Failed to save changes to the account.");
         refresh_accounts_table();
+
     } else {
         current_accounts_[row] = updated_account;
     }

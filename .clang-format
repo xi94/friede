@@ -19,7 +19,6 @@ AllowShortFunctionsOnASingleLine: None
 BreakBeforeBraces: WebKit
 BreakConstructorInitializers: BeforeComma
 BreakBeforeConceptDeclarations: Always
-BreakTemplateDeclarations: Yes
 
 BraceWrapping:
   AfterFunction: false

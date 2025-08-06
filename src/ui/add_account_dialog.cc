@@ -32,7 +32,7 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     auto *label_note = new QLabel{"Note", this};
     line_edit_note = new QLineEdit{this};
     line_edit_note->setPlaceholderText("Enter a note (e.g., 'alt account')");
-    line_edit_note->setStyleSheet("QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    //    line_edit_note->setStyleSheet("QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
 
     main_layout->addWidget(label_note);
     main_layout->addWidget(line_edit_note);
@@ -40,8 +40,8 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     auto *label_username = new QLabel{"Username", this};
     line_edit_username = new QLineEdit{this};
     line_edit_username->setPlaceholderText("Enter your username");
-    line_edit_username->setStyleSheet(
-        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    //    line_edit_username->setStyleSheet(
+    //        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
 
     main_layout->addWidget(label_username);
     main_layout->addWidget(line_edit_username);
@@ -50,8 +50,8 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     line_edit_password = new QLineEdit{this};
     line_edit_password->setEchoMode(QLineEdit::Password);
     line_edit_password->setPlaceholderText("Enter your password");
-    line_edit_password->setStyleSheet(
-        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
+    //    line_edit_password->setStyleSheet(
+    //        "QLineEdit { border: none; background-color: #333333; color: white; padding: 5px; border-radius: 3px; }");
 
     main_layout->addWidget(label_password);
     main_layout->addWidget(line_edit_password);
@@ -73,6 +73,7 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
     button_box->button(QDialogButtonBox::Ok)->setFixedWidth(button_width);
     button_box->button(QDialogButtonBox::Cancel)->setFixedWidth(button_width);
 
+    /*
     button_box->setStyleSheet(R"(
         QPushButton {
             background-color: #555555;
@@ -95,7 +96,7 @@ Add_Account_Dialog::Add_Account_Dialog(QWidget *parent)
             border: 1px solid #444444;
         }
     )");
-
+    */
     auto *button_layout = new QHBoxLayout;
     button_layout->addStretch();
     button_layout->addWidget(button_box);

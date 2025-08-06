@@ -73,8 +73,7 @@ constexpr inline auto client_error_as_string(Client_Error error) -> std::string_
     }
 }
 
-template <typename T>
-using Result = std::expected<T, Client_Error>;
+template <typename T> using Result = std::expected<T, Client_Error>;
 
 /**
  * @class Client

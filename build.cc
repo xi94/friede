@@ -96,6 +96,9 @@ auto set_build_options(const talon::arguments &args, talon::workspace *workspace
     if (args.contains("release")) {
         opts->optimization = talon::speed;
         workspace->add_linker_flags("/SUBSYSTEM:WINDOWS", "/ENTRY:mainCRTStartup");
+    } else {
+        opts->debug_symbols = true;
+        workspace->add_linker_flags("/DEBUG");
     }
 }
 
@@ -106,7 +109,9 @@ auto build(talon::arguments args) -> void
     add_build_dependencies(args, &workspace);
     set_build_options(args, &workspace);
 
-    generate_moc_files({"ui/window.hpp", "ui/updater.hpp", "ui/login_worker.hpp", "ui/add_account_dialog.hpp", "core/config.hpp"});
+    // think account isnt necessary here?
+    generate_moc_files({"ui/window.hpp", "ui/updater.hpp", "ui/login_worker.hpp", "ui/add_account_dialog.hpp", "core/config.hpp",
+                        "ui/theme_manager.hpp", "core/account.hpp"});
 
     // FIXME yeah this doesnt really work if the build folder is there lol
     const bool needs_qt_deps = !fs::exists(workspace.root / "build");

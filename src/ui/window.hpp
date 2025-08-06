@@ -4,6 +4,12 @@
 
 #pragma once
 
+#include "core/account.hpp"
+#include "core/theme.hpp"
+#include "riot/client.hpp"
+#include "ui/login_worker.hpp"
+#include "updater.hpp"
+
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -21,11 +27,6 @@
 #include <QTableWidget>
 #include <QThread>
 #include <QWidget>
-
-#include "core/config.hpp"
-#include "riot/client.hpp"
-#include "ui/login_worker.hpp"
-#include "updater.hpp"
 
 #define TOML_EXCEPTIONS 0
 #define TOML_HEADER_ONLY 1
@@ -97,16 +98,19 @@ class Window final : public QMainWindow {
 
     // App management
     Updater *updater_;
-    core::Config *config_;
+    core::Theme_Config *theme_config_;
+    core::Account_Config *account_config_;
 
     // State & Data
     riot::Game current_game_;
     QString banners_dir_;
     QString game_icons_dir_;
-    QString config_path_;
     QThread worker_thread_;
     QMap<riot::Game, QPixmap> original_banner_pixmaps_;
     QVector<core::Account> current_accounts_;
+
+    auto generate_stylesheet(const core::Theme &theme) -> QString;
+    auto apply_theme() -> void;
 
     // Event Handlers
     auto handle_home_button_click() -> void;
@@ -121,11 +125,6 @@ class Window final : public QMainWindow {
     auto setup_common_ui() -> void;
     auto setup_home_page() -> void;
     auto setup_accounts_page() -> void;
-
-    // Data Management
-    auto populate_accounts_table() -> void;
-    auto save_account_data(int row, int column, const QString &new_value) -> void;
-    auto add_account_to_config(const QString &note, const QString &username, const QString &password) -> void;
 
     // UI Updates
     auto reset_account_selection() -> void;
