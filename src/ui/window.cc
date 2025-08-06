@@ -236,7 +236,7 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
 {
     if (event->buttons() == Qt::LeftButton) {
         const auto [x, y] = mouse_click_position_;
-        const bool in_drag_area = (y > 1 && y < 35);
+        const bool in_drag_area = (y > 1 && y < 35); // FIXME should use the top bars dimensions instead of this lol
 
         if (in_drag_area) {
             const auto new_position = event->globalPosition().toPoint() - mouse_click_position_;

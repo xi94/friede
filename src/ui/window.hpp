@@ -76,7 +76,6 @@ class Window final : public QMainWindow {
     auto start_login(riot::Game game, const QString &username, const QString &password) -> void;
 
   private slots:
-
     /// @brief Slot to receive and display progress messages from the worker.
     auto on_login_progress_update(const QString &message) -> void;
 
@@ -154,6 +153,11 @@ class Window final : public QMainWindow {
     QPushButton *button_progress_back_;
     QLabel *label_progress_game_icon_;
     QWidget *widget_top_bar_;
+
+    QPushButton *close_window_;
+    QPushButton *minimize_window_;
+    QPushButton *maximize_window_;
+
     QPushButton *button_top_bar_home_;
     QPushButton *button_top_bar_options_;
     QWidget *widget_bottom_bar_;
