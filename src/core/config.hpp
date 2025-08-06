@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <QObject>
 #include <QString>
 
 #define TOML_EXCEPTIONS 0
@@ -17,9 +16,7 @@ namespace core {
  * @class Config
  * @brief Base class for managing reading from and writing to TOML configuration files.
  */
-class Config : public QObject {
-    Q_OBJECT
-
+class Config {
   public:
     virtual ~Config() = default;
 
@@ -30,7 +27,7 @@ class Config : public QObject {
     auto get_config_directory_path() const -> QString;
 
   protected:
-    explicit Config(const QString file_name, QObject *parent = nullptr);
+    explicit Config(const QString file_name);
 
     /// @brief Reads the TOML file from disk into a toml::table.
     auto load() const -> toml::table;

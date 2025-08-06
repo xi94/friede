@@ -28,7 +28,7 @@ struct Theme {
 
 class Theme_Config final : public Config {
   public:
-    explicit Theme_Config(QObject *parent = nullptr);
+    Theme_Config();
 
     auto load() const -> Theme;
     auto save(const Theme &theme) -> bool;

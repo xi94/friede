@@ -44,8 +44,8 @@ Window::Window(QWidget *parent)
     , button_top_bar_options_{new QPushButton{"", widget_top_bar_}}
     , widget_bottom_bar_{new QWidget{this}}
     , updater_{new Updater{this}}
-    , theme_config_{new core::Theme_Config{this}}
-    , account_config_{new core::Account_Config{this}}
+    , theme_config_{new core::Theme_Config{}}
+    , account_config_{new core::Account_Config{}}
     , label_game_icon_placeholder_{new QLabel{widget_bottom_bar_}}
     , button_login_{new QPushButton{"Login", widget_bottom_bar_}}
     , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}

@@ -23,10 +23,8 @@ struct Account {
  * @brief Manages account-specific data in the configuration file.
  */
 class Account_Config final : public Config {
-    Q_OBJECT
-
   public:
-    explicit Account_Config(QObject *parent = nullptr);
+    Account_Config();
 
     /// @brief Returns a list of all accounts from the configuration file.
     auto get_accounts() const -> QVector<Account>;

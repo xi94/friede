@@ -8,8 +8,8 @@ using namespace std::literals;
 
 namespace core {
 
-Account_Config::Account_Config(QObject *parent)
-    : Config("accounts.toml", parent)
+Account_Config::Account_Config()
+    : Config{"accounts.toml"}
 {
 }
 

@@ -17,9 +17,8 @@ using namespace std::literals;
 
 namespace core {
 
-Config::Config(const QString file_name, QObject *parent)
-    : QObject{parent}
-    , config_path_{initialize_config_path(file_name)}
+Config::Config(const QString file_name)
+    : config_path_{initialize_config_path(file_name)}
 {
 }
 

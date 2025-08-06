@@ -110,8 +110,8 @@ auto build(talon::arguments args) -> void
     set_build_options(args, &workspace);
 
     // think account isnt necessary here?
-    generate_moc_files({"ui/window.hpp", "ui/updater.hpp", "ui/login_worker.hpp", "ui/add_account_dialog.hpp", "core/config.hpp",
-                        "ui/theme_manager.hpp", "core/account.hpp"});
+    generate_moc_files({"ui/window.hpp", "ui/updater.hpp", "ui/login_worker.hpp", "ui/add_account_dialog.hpp"});
+
 
     // FIXME yeah this doesnt really work if the build folder is there lol
     const bool needs_qt_deps = !fs::exists(workspace.root / "build");

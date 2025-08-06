@@ -6,8 +6,8 @@
 
 namespace core {
 
-Theme_Config::Theme_Config(QObject *parent)
-    : Config{"theme.toml", parent}
+Theme_Config::Theme_Config()
+    : Config{"theme.toml"}
 {
 }
 
