@@ -25,6 +25,22 @@
 #include <iostream>
 #include <string>
 
+// --------------------
+// WINDOWS OWN COLORS
+// --------------------
+// SUPER  DARK  #151515
+// MIDDLE DARK  #191919
+// LIGHT  DARK  #202020
+// --------------------
+
+// --------------------
+// FILEPILOTS COLORS
+// --------------------
+// SUPER  DARK  #191b1c
+// MIDDLE DARK  #1f2223
+// LIGHT  DARK  #1f2223
+// --------------------
+
 namespace ui {
 
 Window::Window(QWidget *parent)
@@ -44,7 +60,7 @@ Window::Window(QWidget *parent)
     , button_top_bar_options_{new QPushButton{"", widget_top_bar_}}
     , widget_bottom_bar_{new QWidget{this}}
     , updater_{new Updater{this}}
-    , config_{new core::Config{this}}
+    , config_{new core::Config{"configuration.toml", this}}
     , label_game_icon_placeholder_{new QLabel{widget_bottom_bar_}}
     , button_login_{new QPushButton{"Login", widget_bottom_bar_}}
     , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}
@@ -52,7 +68,6 @@ Window::Window(QWidget *parent)
     , banners_dir_{QCoreApplication::applicationDirPath() + "/banners/"}
     , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"}
 {
-
     //
     // login worker
     //
@@ -123,7 +138,12 @@ Window::Window(QWidget *parent)
 
     auto *central_widget = new QWidget{this};
     central_widget->setLayout(main_window_layout);
+    central_widget->setStyleSheet("background-color: #191b1c");
+
     setCentralWidget(central_widget);
+
+    widget_top_bar_->setStyleSheet("background-color: #191b1c; border-bottom: 1px solid #333333;");
+    //    widget_top_bar_->setStyleSheet("background-color: #151515; border-bottom: 0.5px solid #FFFFFF");
 
     widget_bottom_bar_->hide();
     label_game_icon_placeholder_->hide();
@@ -283,7 +303,7 @@ auto Window::keyPressEvent(QKeyEvent *event) -> void
 
 auto Window::setup_common_ui() -> void
 {
-    widget_top_bar_->setStyleSheet("background-color: #1c1c1c; border-bottom: 1px solid #d0d0d0; padding: 5px;");
+    //    widget_top_bar_->setStyleSheet("background-color: #1c1c1c; border-bottom: 1px solid #d0d0d0; padding: 5px;");
     widget_top_bar_->setFixedHeight(40);
 
     auto *top_bar_layout = new QHBoxLayout(widget_top_bar_);
@@ -300,7 +320,7 @@ auto Window::setup_common_ui() -> void
         "#3a3a3b; } QPushButton::menu-indicator { image: none; width: 0px; }");
 
     auto *options_menu = new QMenu(button_top_bar_options_);
-    options_menu->setStyleSheet("QMenu { background-color: #2b2b2b; color: white; border: 1px solid #555; } QMenu::item { padding: 4px "
+    options_menu->setStyleSheet("QMenu { background-color: #1f2223 color: white; border: 1px solid #555; } QMenu::item { padding: 4px "
                                 "20px; } QMenu::item:selected { background-color: #404040; }");
 
     auto *action_check_for_updates = options_menu->addAction("check for updates");
