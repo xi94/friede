@@ -16,9 +16,9 @@ using namespace std::literals;
 
 namespace core {
 
-Config::Config(QObject *parent)
+Config::Config(const QString &file_name, QObject *parent)
     : QObject{parent}
-    , config_path_{initialize_config_path()}
+    , config_path_{initialize_config_path(file_name)}
 {
 }
 
@@ -27,7 +27,7 @@ auto Config::get_config_directory_path() const -> QString
     return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 }
 
-auto Config::initialize_config_path() -> QString
+auto Config::initialize_config_path(const QString &file_name) -> QString
 {
     const QString appdata_path = get_config_directory_path();
     if (appdata_path.isEmpty()) {
@@ -41,7 +41,7 @@ auto Config::initialize_config_path() -> QString
         return {};
     }
 
-    const QString config_file_path = appdata_dir.absoluteFilePath("configuration.toml");
+    const QString config_file_path = appdata_dir.absoluteFilePath(file_name); // configuration.toml
     if (QFile::exists(config_file_path)) { return config_file_path; }
 
     // create a default config file if it doesnt exist

@@ -24,7 +24,7 @@ class Config final : public QObject {
     Q_OBJECT
 
   public:
-    explicit Config(QObject *parent = nullptr);
+    explicit Config(const QString &file_name, QObject *parent = nullptr);
 
     /// @brief Returns a list of all accounts from the configuration file.
     auto get_accounts() const -> QVector<Account>;
@@ -46,7 +46,7 @@ class Config final : public QObject {
 
   private:
     /// @brief Gets the path to the config file, creating it if it doesn't exist.
-    auto initialize_config_path() -> QString;
+    auto initialize_config_path(const QString &file_name) -> QString;
 
     /// @brief Reads the TOML file from disk into a toml::table.
     auto load_config_from_file() const -> toml::table;
