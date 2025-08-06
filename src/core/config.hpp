@@ -39,6 +39,7 @@ class Config {
     /// @brief Gets the path to the config file, creating it if it doesn't exist.
     auto initialize_config_path(const QString file_name) -> QString;
 
+  private:
     QString config_path_;
 };
 

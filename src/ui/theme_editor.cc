@@ -57,7 +57,7 @@ Theme_Editor::Theme_Editor(core::Theme &theme, QWidget *parent)
     update_previews();
 }
 
-void Theme_Editor::create_color_picker(const QString &label, QColor &color_ref)
+auto Theme_Editor::create_color_picker(const QString &label, QColor &color_ref) -> void
 {
     auto *button = new QPushButton;
     button->setFixedSize(24, 24);
@@ -68,7 +68,7 @@ void Theme_Editor::create_color_picker(const QString &label, QColor &color_ref)
     connect(button, &QPushButton::clicked, this, &Theme_Editor::on_color_button_clicked);
 }
 
-void Theme_Editor::on_color_button_clicked()
+auto Theme_Editor::on_color_button_clicked() -> void
 {
     auto *button = qobject_cast<QPushButton *>(sender());
     if (!button || !color_map_.contains(button)) return;
@@ -82,7 +82,7 @@ void Theme_Editor::on_color_button_clicked()
     }
 }
 
-void Theme_Editor::update_previews()
+auto Theme_Editor::update_previews() -> void
 {
     for (auto it = color_map_.begin(); it != color_map_.end(); ++it) {
         it.key()->setStyleSheet(QString{"background-color: %1;"}.arg(it.value()->name()));
@@ -95,12 +95,12 @@ void Theme_Editor::update_previews()
     this->setStyleSheet(QString{"background-color: %1;"}.arg(current_theme_.background_dark.name()));
 }
 
-void Theme_Editor::on_save_button_clicked()
+auto Theme_Editor::on_save_button_clicked() -> void
 {
     accept();
 }
 
-void Theme_Editor::on_cancel_button_clicked()
+auto Theme_Editor::on_cancel_button_clicked() -> void
 {
     reject();
 }

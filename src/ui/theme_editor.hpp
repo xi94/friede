@@ -27,13 +27,13 @@ class Theme_Editor final : public QDialog {
 
   private slots:
     /// @brief Opens a color dialog when a color swatch button is clicked.
-    void on_color_button_clicked();
+    auto on_color_button_clicked() -> void;
 
     /// @brief Accepts the dialog, signaling that changes should be saved.
-    void on_save_button_clicked();
+    auto on_save_button_clicked() -> void;
 
     /// @brief Rejects the dialog, discarding any changes.
-    void on_cancel_button_clicked();
+    auto on_cancel_button_clicked() -> void;
 
   private:
     /// @brief Creates a color picker widget and adds it to the form.
