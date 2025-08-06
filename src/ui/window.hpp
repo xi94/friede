@@ -20,6 +20,7 @@
 #include <QMap>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QObject>
 #include <QPixmap>
 #include <QPushButton>
@@ -55,8 +56,17 @@ class Window final : public QMainWindow {
     /// @brief Handles window resize events to scale UI elements.
     auto resizeEvent(QResizeEvent *event) -> void override;
 
+    /// @brief Filters events through registered child widgets.
+    auto eventFilter(QObject *watched, QEvent *event) -> bool override;
+
     /// @brief Handles global key press events.
     auto keyPressEvent(QKeyEvent *event) -> void override;
+
+    /// @brief Handles mouse movement events.
+    auto mouseMoveEvent(QMouseEvent *event) -> void override;
+
+    /// @brief Handles mouse click events.
+    auto mousePressEvent(QMouseEvent *event) -> void override;
 
   signals:
     /// @brief Signals the worker thread to begin a login attempt.
@@ -66,6 +76,7 @@ class Window final : public QMainWindow {
     auto start_login(riot::Game game, const QString &username, const QString &password) -> void;
 
   private slots:
+
     /// @brief Slot to receive and display progress messages from the worker.
     auto on_login_progress_update(const QString &message) -> void;
 
@@ -155,6 +166,7 @@ class Window final : public QMainWindow {
     core::Theme_Config *theme_config_;
     core::Account_Config *account_config_;
 
+    QPoint mouse_click_position_;
     riot::Game current_game_;
     QString banners_dir_;
     QString game_icons_dir_;

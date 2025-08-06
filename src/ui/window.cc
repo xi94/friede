@@ -48,6 +48,7 @@ Window::Window(QWidget *parent)
     , theme_config_{new core::Theme_Config{}}
     , account_config_{new core::Account_Config{}}
     , label_game_icon_placeholder_{new QLabel{widget_bottom_bar_}}
+    , mouse_click_position_{}
     , button_login_{new QPushButton{"Login", widget_bottom_bar_}}
     , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}
     , button_remove_account_{new QPushButton{"Remove Account", widget_bottom_bar_}}
@@ -66,7 +67,6 @@ Window::Window(QWidget *parent)
 
     setMinimumSize(750, 450);
     setWindowTitle("a flame alighteth");
-
     QMainWindow::setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
 
     const auto available_geometry = QGuiApplication::primaryScreen()->availableGeometry();
@@ -82,6 +82,7 @@ Window::Window(QWidget *parent)
     setup_common_ui();
 
     main_window_layout->addWidget(widget_top_bar_, 0, Qt::AlignTop);
+
     setup_home_page();
     setup_accounts_page();
 
@@ -118,6 +119,11 @@ Window::Window(QWidget *parent)
     button_add_account_->hide();
     button_remove_account_->hide();
     widget_top_bar_->show();
+
+    // registering event filters to all our push buttons after all the widgets are created to avoid race condition with dragging
+    for (auto *button : QMainWindow::findChildren<QPushButton *>()) {
+        button->installEventFilter(this);
+    }
 
     apply_theme();
     updater_->check_for_updates();
@@ -201,10 +207,50 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
     layout_menu_->blockSignals(false);
 }
 
+auto Window::eventFilter(QObject *watched, QEvent *event) -> bool
+{
+    if (event->type() == QEvent::MouseButtonPress) {
+        auto *mouse_event = static_cast<QMouseEvent *>(event);
+
+        // map the child widgets position to avoid race conditions with our custom window movement
+        if (mouse_event->button() == Qt::LeftButton) {
+            auto *child_widget = static_cast<QWidget *>(watched);
+            mouse_click_position_ = child_widget->mapTo(this, mouse_event->pos());
+        }
+    }
+
+    return QMainWindow::eventFilter(watched, event);
+}
+
 auto Window::keyPressEvent(QKeyEvent *event) -> void
 {
-    if (event->key() == Qt::Key_Escape && !table_accounts_->selectedItems().isEmpty()) reset_account_selection();
+    if (event->key() == Qt::Key_Escape) {
+        const bool account_table_empty = table_accounts_->selectedItems().isEmpty();
+        if (!account_table_empty) reset_account_selection();
+    }
+
     return QMainWindow::keyPressEvent(event);
+}
+
+auto Window::mouseMoveEvent(QMouseEvent *event) -> void
+{
+    if (event->buttons() == Qt::LeftButton) {
+        const auto [x, y] = mouse_click_position_;
+        const bool in_drag_area = (y > 1 && y < 35);
+
+        if (in_drag_area) {
+            const auto new_position = event->globalPosition().toPoint() - mouse_click_position_;
+            QMainWindow::move(new_position);
+        }
+    }
+
+    QMainWindow::mouseMoveEvent(event);
+}
+
+auto Window::mousePressEvent(QMouseEvent *event) -> void
+{
+    if (event->button() == Qt::LeftButton) mouse_click_position_ = event->pos();
+    return QMainWindow::mousePressEvent(event);
 }
 
 auto Window::on_login_progress_update(const QString &message) -> void
