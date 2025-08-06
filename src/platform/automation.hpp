@@ -104,21 +104,18 @@ struct Element final : public Com_Pointer<IUIAutomationElement> {
 
     /// @brief Gets the ValuePattern for this element, if supported.
     [[nodiscard]] auto get_value_pattern() const -> std::optional<Value_Pattern>
-
     {
         return get_pattern<Value_Pattern, IUIAutomationValuePattern>(UIA_ValuePatternId);
     }
 
     /// @brief Gets the TogglePattern for this element, if supported.
     [[nodiscard]] auto get_toggle_pattern() const -> std::optional<Toggle_Pattern>
-
     {
         return get_pattern<Toggle_Pattern, IUIAutomationTogglePattern>(UIA_TogglePatternId);
     }
 
     /// @brief Gets the InvokePattern for this element, if supported.
     [[nodiscard]] auto get_invoke_pattern() const -> std::optional<Invoke_Pattern>
-
     {
         return get_pattern<Invoke_Pattern, IUIAutomationInvokePattern>(UIA_InvokePatternId);
     }
@@ -133,7 +130,6 @@ struct Element final : public Com_Pointer<IUIAutomationElement> {
     /// @brief Generic method to retrieve a specific UI Automation pattern for this element.
     template <typename PatternWrapper, typename RawPatternInterface>
     [[nodiscard]] auto get_pattern(PATTERNID pattern_id) const -> std::optional<PatternWrapper>
-
     {
         if (!pointer) return {};
 
