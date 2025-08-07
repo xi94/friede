@@ -68,6 +68,9 @@ class Window final : public QMainWindow {
     /// @brief handles mouse click events
     auto mousePressEvent(QMouseEvent *event) -> void override;
 
+    /// @brief handles mouse release events
+    auto mouseReleaseEvent(QMouseEvent *event) -> void override;
+
   signals:
     /// @brief signals the worker thread to begin a login attempt
     /// @param game the target game to launch
@@ -170,7 +173,9 @@ class Window final : public QMainWindow {
     // ui state
     //
 
+    QRect window_size_;
     QPoint mouse_click_position_;
+
     QString banners_dir_;
     QString game_icons_dir_;
 

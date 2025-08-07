@@ -54,6 +54,7 @@ Window::Window(QWidget *parent)
     , updater_{new Updater{this}}
     , theme_config_{new core::Theme_Config{}}
     , account_config_{new core::Account_Config{}}
+    , window_size_{}
     , mouse_click_position_{}
     , banners_dir_{QCoreApplication::applicationDirPath() + "/banners/"}
     , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"}
@@ -240,28 +241,99 @@ auto Window::keyPressEvent(QKeyEvent *event) -> void
         if (!account_table_empty) reset_account_selection();
     }
 
-    return QMainWindow::keyPressEvent(event);
+    QMainWindow::keyPressEvent(event);
 }
 
+// TODO clean this function up
 auto Window::mouseMoveEvent(QMouseEvent *event) -> void
 {
     if (event->buttons() == Qt::LeftButton) {
-        const auto [x, y] = mouse_click_position_;
-        const bool in_drag_area = (y > 0 && y < top_bar_widget_->height());
+        constexpr int resize_margin = 8;
 
-        if (in_drag_area) {
+        const QRect initial_size = window_size_;
+        const QPoint initial_position = mouse_click_position_;
+
+        const QRect size = {window_size_};
+        const auto [x, y] = mouse_click_position_;
+
+        const bool is_dragging = (y > resize_margin && y < top_bar_widget_->height());
+        if (is_dragging) {
             const auto new_position = event->globalPosition().toPoint() - mouse_click_position_;
             QMainWindow::move(new_position);
+            return;
+        }
+
+        //
+        // window resizing
+        //
+
+        // FIXME the images are a bit jittery for left / up movement due to our moving with resize calculations
+
+        const bool on_top_edge = y <= resize_margin;
+        const bool on_left_edge = x <= resize_margin;
+        const bool on_right_edge = x >= size.width() - resize_margin;
+        const bool on_bottom_edge = y >= size.height() - resize_margin;
+
+        const bool is_resizing = on_left_edge || on_right_edge || on_top_edge || on_bottom_edge;
+        if (is_resizing) {
+            // TODO this isnt size, it updates both position and size, editor renaming feature is broken, and im too tired to rename it now
+            QRect new_size = {size};
+
+            if (on_right_edge) {
+                const int delta_x = event->pos().x() - x;
+                new_size.setWidth(size.width() + delta_x);
+            } else if (on_left_edge) {
+                const int new_x = event->globalPosition().x() - x;
+                const int new_width = size.right() - new_x;
+                const int min_width = QMainWindow::minimumWidth();
+
+                // avoid going past min height or window drifts to narnia
+                if (new_width >= min_width) {
+                    new_size.setX(new_x);
+                    new_size.setWidth(new_width);
+                } else {
+                    new_size.setWidth(min_width);
+                    new_size.setX(size.right() - min_width);
+                }
+            }
+
+            if (on_bottom_edge) {
+                const int delta_y = event->pos().y() - y;
+                new_size.setHeight(size.height() + delta_y);
+            } else if (on_top_edge) {
+                const int new_y = event->globalPosition().y() - y;
+                const int new_height = size.bottom() - new_y;
+                const int min_height = QMainWindow::minimumHeight();
+
+                // avoid going past min height or window drifts to narnia
+                if (new_height >= min_height) {
+                    new_size.setY(new_y);
+                    new_size.setHeight(new_height);
+                } else {
+                    new_size.setHeight(min_height);
+                    new_size.setY(size.bottom() - min_height);
+                }
+            }
+
+            setGeometry(new_size);
         }
     }
-
-    QMainWindow::mouseMoveEvent(event);
 }
 
 auto Window::mousePressEvent(QMouseEvent *event) -> void
 {
-    if (event->button() == Qt::LeftButton) mouse_click_position_ = event->pos();
-    return QMainWindow::mousePressEvent(event);
+    // maybe this should be checking if the mouse is within the window size we just stored?
+    if (event->button() == Qt::LeftButton) {
+        grabMouse();
+
+        window_size_ = QMainWindow::geometry();
+        mouse_click_position_ = event->pos();
+    }
+}
+
+auto Window::mouseReleaseEvent(QMouseEvent *event) -> void
+{
+    if (event->button() == Qt::LeftButton) releaseMouse();
 }
 
 auto Window::on_login_progress_update(const QString &message) -> void
