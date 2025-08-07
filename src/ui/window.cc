@@ -598,16 +598,43 @@ auto Window::setup_common_ui() -> void
 
     auto *top_bar_layout = new QHBoxLayout{top_bar_widget_};
     top_bar_layout->setContentsMargins(5, 0, 5, 0);
-    top_bar_layout->setSpacing(5);
+
+    constexpr std::string_view control_button_stylesheet = "QPushButton {"
+                                                           "  background-color: rgba(255, 255, 255, 0);"
+                                                           "  border-color: rgba(255, 255, 255, 0);"
+                                                           "}"
+                                                           "QPushButton#maximize_button:Hover,"
+                                                           "QPushButton#minimize_button:Hover {"
+                                                           "  background-color: rgba(200, 200, 200, 30);"
+                                                           "}"
+                                                           "QPushButton#close_button:Hover {"
+                                                           "  background-color: rgba(240, 0, 0, 200);"
+                                                           "}"
+                                                           "QPushButton#maximize_button:Pressed,"
+                                                           "QPushButton#minimize_button:Pressed {"
+                                                           "  background-color: rgba(100, 100, 100, 30);"
+                                                           "}"
+                                                           "QPushButton#close_button:Pressed {"
+                                                           "  background-color: rgba(150, 0, 0, 200);"
+                                                           "}";
 
     minimize_button_->setObjectName("minimize_button");
     minimize_button_->setIcon(QIcon::fromTheme("list-remove"));
+    minimize_button_->setFixedSize(30, 30);
+    minimize_button_->setIconSize({12, 12});
+    minimize_button_->setStyleSheet(control_button_stylesheet.data());
 
     maximize_button_->setObjectName("maximize_button");
     maximize_button_->setIcon(QIcon::fromTheme("view-fullscreen"));
+    maximize_button_->setFixedSize(30, 30);
+    maximize_button_->setIconSize({14, 14});
+    maximize_button_->setStyleSheet(control_button_stylesheet.data());
 
     close_button_->setObjectName("close_button");
     close_button_->setIcon(QIcon::fromTheme("window-close"));
+    close_button_->setFixedSize(30, 30);
+    close_button_->setIconSize({10, 10});
+    close_button_->setStyleSheet(control_button_stylesheet.data());
 
     home_button_->setObjectName("home_button");
     home_button_->setIcon(QIcon::fromTheme("document-revert"));
