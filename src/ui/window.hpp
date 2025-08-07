@@ -1,7 +1,3 @@
-// =================================================================================
-// ui/window.hpp
-// =================================================================================
-
 #pragma once
 
 #include "core/account.hpp"
@@ -38,145 +34,176 @@ using namespace std::literals;
 
 namespace ui {
 
-/// @brief Represents the pages available in the main stacked widget.
+/// @brief Represents the pages available in the main stacked widget
 enum class Page { Home, Accounts, Progress };
 
 /// @class Window
-/// @brief The main application window. Manages the UI and user interaction.
+/// @brief The main application window manages the ui and user interaction
 class Window final : public QMainWindow {
     Q_OBJECT
 
   public:
-    /// @brief Constructs the main window.
-    /// @param parent The parent widget.
+    /// @brief constructs the main window
+    /// @param parent the parent widget
     explicit Window(QWidget *parent = nullptr);
     ~Window();
 
   protected:
-    /// @brief Handles window resize events to scale UI elements.
+    /// @brief handles window resize events to scale ui elements
     auto resizeEvent(QResizeEvent *event) -> void override;
 
-    /// @brief Filters events through registered child widgets.
+    /// @brief filters events through registered child widgets
     auto eventFilter(QObject *watched, QEvent *event) -> bool override;
 
-    /// @brief Handles global key press events.
+    /// @brief handles global key press events
     auto keyPressEvent(QKeyEvent *event) -> void override;
 
-    /// @brief Handles mouse movement events.
+    /// @brief handles mouse movement events
     auto mouseMoveEvent(QMouseEvent *event) -> void override;
 
-    /// @brief Handles mouse click events.
+    /// @brief handles mouse click events
     auto mousePressEvent(QMouseEvent *event) -> void override;
 
   signals:
-    /// @brief Signals the worker thread to begin a login attempt.
-    /// @param game The target game to launch.
-    /// @param username The account username.
-    /// @param password The account password.
+    /// @brief signals the worker thread to begin a login attempt
+    /// @param game the target game to launch
+    /// @param username the account username
+    /// @param password the account password
     auto start_login(riot::Game game, const QString &username, const QString &password) -> void;
 
   private slots:
-    /// @brief Slot to receive and display progress messages from the worker.
+    /// @brief slot to receive and display progress messages from the worker
     auto on_login_progress_update(const QString &message) -> void;
 
-    /// @brief Slot to handle the result of a completed login attempt.
+    /// @brief slot to handle the result of a completed login attempt
     auto on_login_finished(bool success, const QString &message) -> void;
 
-    /// @brief Reloads the account data from the config and repopulates the table.
+    /// @brief reloads the account data from the config and repopulates the table
     auto refresh_accounts_table() -> void;
 
   private:
-    /// @brief Generates the full stylesheet string from the current theme.
-    /// @param theme The theme data to use for generating color styles.
-    /// @return A single QString containing all application styles.
+    /// @brief generates the full stylesheet string from the current theme
+    /// @param theme the theme data to use for generating color styles
+    /// @return a single qstring containing all application styles
     auto generate_stylesheet(const core::Theme &theme) -> QString;
 
-    /// @brief Applies the current theme to the application.
+    /// @brief applies the current theme to the application
     auto apply_theme() -> void;
 
   private:
-    // Event Handlers
-    /// @brief Handles the click event for the "Customize Theme" menu action.
+    //
+    // event handlers
+    //
+    /// @brief handles the click event for the "customize theme" menu action
     auto handle_customize_theme_button_click() -> void;
 
-    /// @brief Handles the click event for the home/back button.
+    /// @brief handles the click event for the home/back button
     auto handle_home_button_click() -> void;
 
-    /// @brief Handles the click event for a game banner on the home page.
+    /// @brief handles the click event for a game banner on the home page
     auto handle_game_banner_click(riot::Game game) -> void;
 
-    /// @brief Handles selection changes in the accounts table.
+    /// @brief handles selection changes in the accounts table
     auto handle_table_selection_changed() -> void;
 
-    /// @brief Handles the click event for the main login button.
+    /// @brief handles the click event for the main login button
     auto handle_login_button_click() -> void;
 
-    /// @brief Handles the click event for the "Add Account" button.
+    /// @brief handles the click event for the "add account" button
     auto handle_add_account_button_click() -> void;
 
-    /// @brief Handles the click event for the "Remove Account" button.
+    /// @brief handles the click event for the "remove account" button
     auto handle_remove_account_button_click() -> void;
 
-    /// @brief Handles data changes within a cell of the accounts table.
+    /// @brief handles data changes within a cell of the accounts table
     auto handle_account_cell_updated(int row, int column) -> void;
 
-    // UI Setup
-    /// @brief Sets up UI elements common to all pages (e.g., top bar).
+    //
+    // ui setup
+    //
+    /// @brief sets up ui elements common to all pages (eg, top bar)
     auto setup_common_ui() -> void;
 
-    /// @brief Sets up the home page with game selection banners.
+    /// @brief sets up the home page with game selection banners
     auto setup_home_page() -> void;
 
-    /// @brief Sets up the accounts page with the accounts table.
+    /// @brief sets up the accounts page with the accounts table
     auto setup_accounts_page() -> void;
 
-    // UI Updates
-    /// @brief Clears the current selection in the accounts table.
+    //
+    // ui updates
+    //
+    /// @brief clears the current selection in the accounts table
     auto reset_account_selection() -> void;
 
-    /// @brief Updates the bottom bar content based on the selected game.
+    /// @brief updates the bottom bar content based on the selected game
     auto update_bottom_bar_content(riot::Game game) -> void;
 
-    // Helpers
-    /// @brief Creates a styled QPushButton for a game banner.
+    //
+    // helpers
+    //
+    /// @brief creates a styled qpushbutton for a game banner
     auto create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *;
 
   private:
-    QStackedWidget *widget_main_stacked_;
-    QWidget *widget_menu_;
-    QHBoxLayout *layout_menu_;
-    QWidget *widget_accounts_content_;
-    QLabel *label_accounts_;
-    QTableWidget *table_accounts_;
-    QWidget *widget_progress_page_;
-    QLabel *label_progress_status_;
-    QPushButton *button_progress_back_;
-    QLabel *label_progress_game_icon_;
-    QWidget *widget_top_bar_;
-
-    QPushButton *close_window_;
-    QPushButton *minimize_window_;
-    QPushButton *maximize_window_;
-
-    QPushButton *button_top_bar_home_;
-    QPushButton *button_top_bar_options_;
-    QWidget *widget_bottom_bar_;
-    QLabel *label_game_icon_placeholder_;
-    QPushButton *button_login_;
-    QPushButton *button_add_account_;
-    QPushButton *button_remove_account_;
-
+    //
+    // core logic & data
+    //
     Updater *updater_;
     core::Theme_Config *theme_config_;
     core::Account_Config *account_config_;
-
-    QPoint mouse_click_position_;
+    QThread worker_thread_;
+    QVector<core::Account> accounts_cache_;
+    QMap<riot::Game, QPixmap> banner_pixmaps_;
     riot::Game current_game_;
+
+    //
+    // ui state
+    //
+    QPoint mouse_click_position_;
     QString banners_dir_;
     QString game_icons_dir_;
-    QThread worker_thread_;
-    QMap<riot::Game, QPixmap> original_banner_pixmaps_;
-    QVector<core::Account> current_accounts_;
+
+    //
+    // main layout & pages
+    //
+    QStackedWidget *main_stacked_widget_;
+    QWidget *home_page_;
+    QHBoxLayout *home_page_layout_;
+    QWidget *accounts_page_;
+    QWidget *progress_page_;
+
+    //
+    // top bar widgets
+    //
+    QWidget *top_bar_widget_;
+    QPushButton *home_button_;
+    QPushButton *options_button_;
+    QPushButton *minimize_button_;
+    QPushButton *maximize_button_;
+    QPushButton *close_button_;
+
+    //
+    // bottom bar widgets
+    //
+    QWidget *bottom_bar_widget_;
+    QPushButton *login_button_;
+    QPushButton *add_account_button_;
+    QPushButton *remove_account_button_;
+    QLabel *bottom_bar_game_icon_label_;
+
+    //
+    // accounts page widgets
+    //
+    QLabel *accounts_label_;
+    QTableWidget *accounts_table_;
+
+    //
+    // progress page widgets
+    //
+    QLabel *progress_status_label_;
+    QPushButton *progress_back_button_;
+    QLabel *progress_game_icon_label_;
 };
 
 } // namespace ui

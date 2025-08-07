@@ -1,7 +1,3 @@
-// =================================================================================
-// ui/window.cc
-// =================================================================================
-
 #include "ui/window.hpp"
 
 #include "core/account.hpp"
@@ -30,28 +26,31 @@ namespace ui {
 
 Window::Window(QWidget *parent)
     : QMainWindow{parent}
-    , widget_main_stacked_{new QStackedWidget{this}}
-    , widget_menu_{new QWidget{}}
-    , layout_menu_{new QHBoxLayout{widget_menu_}}
-    , widget_accounts_content_{new QWidget{}}
-    , label_accounts_{new QLabel{}}
-    , table_accounts_{new QTableWidget{0, 3}}
-    , widget_progress_page_{new QWidget{}}
-    , label_progress_status_{new QLabel{"Initializing..."}}
-    , label_progress_game_icon_{new QLabel{}}
-    , button_progress_back_{new QPushButton{"back"}}
-    , widget_top_bar_{new QWidget{this}}
-    , button_top_bar_home_{new QPushButton{"\tback", widget_top_bar_}}
-    , button_top_bar_options_{new QPushButton{"", widget_top_bar_}}
-    , widget_bottom_bar_{new QWidget{this}}
+    , main_stacked_widget_{new QStackedWidget{this}}
+    , home_page_{new QWidget{}}
+    , home_page_layout_{new QHBoxLayout{home_page_}}
+    , accounts_page_{new QWidget{}}
+    , accounts_label_{new QLabel{}}
+    , accounts_table_{new QTableWidget{0, 3}}
+    , progress_page_{new QWidget{}}
+    , progress_status_label_{new QLabel{"Initializing..."}}
+    , progress_back_button_{new QPushButton{"back"}}
+    , progress_game_icon_label_{new QLabel{}}
+    , top_bar_widget_{new QWidget{this}}
+    , home_button_{new QPushButton{"\tback", top_bar_widget_}}
+    , options_button_{new QPushButton{"", top_bar_widget_}}
+    , minimize_button_{new QPushButton{"", top_bar_widget_}}
+    , maximize_button_{new QPushButton{"", top_bar_widget_}}
+    , close_button_{new QPushButton{"", top_bar_widget_}}
+    , bottom_bar_widget_{new QWidget{this}}
+    , login_button_{new QPushButton{"Login", bottom_bar_widget_}}
+    , add_account_button_{new QPushButton{"Add Account", bottom_bar_widget_}}
+    , remove_account_button_{new QPushButton{"Remove Account", bottom_bar_widget_}}
+    , bottom_bar_game_icon_label_{new QLabel{bottom_bar_widget_}}
     , updater_{new Updater{this}}
     , theme_config_{new core::Theme_Config{}}
     , account_config_{new core::Account_Config{}}
-    , label_game_icon_placeholder_{new QLabel{widget_bottom_bar_}}
     , mouse_click_position_{}
-    , button_login_{new QPushButton{"Login", widget_bottom_bar_}}
-    , button_add_account_{new QPushButton{"Add Account", widget_bottom_bar_}}
-    , button_remove_account_{new QPushButton{"Remove Account", widget_bottom_bar_}}
     , banners_dir_{QCoreApplication::applicationDirPath() + "/banners/"}
     , game_icons_dir_{QCoreApplication::applicationDirPath() + "/icons/"}
 {
@@ -76,49 +75,49 @@ Window::Window(QWidget *parent)
     main_window_layout->setContentsMargins(0, 0, 0, 0);
     main_window_layout->setSpacing(0);
 
-    layout_menu_->setSpacing(20);
-    layout_menu_->setContentsMargins(20, 0, 20, 0);
+    home_page_layout_->setSpacing(20);
+    home_page_layout_->setContentsMargins(20, 0, 20, 0);
 
     setup_common_ui();
 
-    main_window_layout->addWidget(widget_top_bar_, 0, Qt::AlignTop);
+    main_window_layout->addWidget(top_bar_widget_, 0, Qt::AlignTop);
 
     setup_home_page();
     setup_accounts_page();
 
-    auto *progress_layout = new QVBoxLayout{widget_progress_page_};
-    label_progress_game_icon_->setFixedSize(128, 128);
-    label_progress_game_icon_->setAlignment(Qt::AlignCenter);
-    label_progress_status_->setAlignment(Qt::AlignCenter);
-    button_progress_back_->hide();
-    button_progress_back_->setFixedSize(150, 30);
+    auto *progress_layout = new QVBoxLayout{progress_page_};
+    progress_game_icon_label_->setFixedSize(128, 128);
+    progress_game_icon_label_->setAlignment(Qt::AlignCenter);
+    progress_status_label_->setAlignment(Qt::AlignCenter);
+    progress_back_button_->hide();
+    progress_back_button_->setFixedSize(150, 30);
 
     progress_layout->addStretch();
-    progress_layout->addWidget(label_progress_game_icon_, 0, Qt::AlignCenter);
-    progress_layout->addWidget(label_progress_status_, 0, Qt::AlignCenter);
-    progress_layout->addWidget(button_progress_back_, 0, Qt::AlignCenter);
+    progress_layout->addWidget(progress_game_icon_label_, 0, Qt::AlignCenter);
+    progress_layout->addWidget(progress_status_label_, 0, Qt::AlignCenter);
+    progress_layout->addWidget(progress_back_button_, 0, Qt::AlignCenter);
     progress_layout->addStretch();
 
-    connect(button_progress_back_, &QPushButton::clicked, this, &Window::handle_home_button_click);
+    connect(progress_back_button_, &QPushButton::clicked, this, &Window::handle_home_button_click);
 
-    widget_main_stacked_->addWidget(widget_menu_);
-    widget_main_stacked_->addWidget(widget_accounts_content_);
-    widget_main_stacked_->addWidget(widget_progress_page_);
+    main_stacked_widget_->addWidget(home_page_);
+    main_stacked_widget_->addWidget(accounts_page_);
+    main_stacked_widget_->addWidget(progress_page_);
 
-    main_window_layout->addWidget(widget_main_stacked_);
-    main_window_layout->addWidget(widget_bottom_bar_, 0, Qt::AlignBottom);
+    main_window_layout->addWidget(main_stacked_widget_);
+    main_window_layout->addWidget(bottom_bar_widget_, 0, Qt::AlignBottom);
 
     auto *central_widget = new QWidget{this};
     central_widget->setObjectName("central_widget");
     central_widget->setLayout(main_window_layout);
     setCentralWidget(central_widget);
 
-    widget_bottom_bar_->hide();
-    label_game_icon_placeholder_->hide();
-    button_login_->hide();
-    button_add_account_->hide();
-    button_remove_account_->hide();
-    widget_top_bar_->show();
+    bottom_bar_widget_->hide();
+    bottom_bar_game_icon_label_->hide();
+    login_button_->hide();
+    add_account_button_->hide();
+    remove_account_button_->hide();
+    top_bar_widget_->show();
 
     // registering event filters to all our push buttons after all the widgets are created to avoid race condition with dragging
     for (auto *button : QMainWindow::findChildren<QPushButton *>()) {
@@ -138,24 +137,24 @@ Window::~Window()
 auto Window::resizeEvent(QResizeEvent *event) -> void
 {
     QMainWindow::resizeEvent(event);
-    layout_menu_->blockSignals(true);
+    home_page_layout_->blockSignals(true);
 
-    const int available_content_height = height() - widget_top_bar_->height() - widget_bottom_bar_->height();
+    const int available_content_height = height() - top_bar_widget_->height() - bottom_bar_widget_->height();
     const int available_content_width = width();
     if (available_content_width <= 0 || available_content_height <= 0) {
-        layout_menu_->blockSignals(false);
+        home_page_layout_->blockSignals(false);
         return;
     }
 
-    const int num_banners = layout_menu_->count();
+    const int num_banners = home_page_layout_->count();
     if (num_banners == 0) {
-        layout_menu_->blockSignals(false);
+        home_page_layout_->blockSignals(false);
         return;
     }
 
-    const int horizontal_margins = layout_menu_->contentsMargins().left() + layout_menu_->contentsMargins().right();
+    const int horizontal_margins = home_page_layout_->contentsMargins().left() + home_page_layout_->contentsMargins().right();
 
-    int total_spacing = layout_menu_->spacing() * (num_banners - 1);
+    int total_spacing = home_page_layout_->spacing() * (num_banners - 1);
     if (total_spacing < 0) total_spacing = 0;
 
     constexpr double aspect_ratio = 2160.0 / 1440.0;
@@ -180,14 +179,14 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
         desired_banner_width = static_cast<int>(desired_banner_height / aspect_ratio);
     }
 
-    for (int i = 0; i < layout_menu_->count(); ++i) {
-        auto *button = qobject_cast<QPushButton *>(layout_menu_->itemAt(i)->widget());
+    for (int i = 0; i < home_page_layout_->count(); ++i) {
+        auto *button = qobject_cast<QPushButton *>(home_page_layout_->itemAt(i)->widget());
         if (!button) continue;
 
         if (riot::is_game_index_out_of_range(i)) continue;
         const auto current_game = static_cast<riot::Game>(i);
 
-        const auto original_pixmap = original_banner_pixmaps_[current_game];
+        const auto original_pixmap = banner_pixmaps_[current_game];
         if (original_pixmap.isNull()) continue;
 
         const auto banner_width = desired_banner_width;
@@ -204,7 +203,7 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
         button->setFixedSize(QSize{button_width, button_height});
     }
 
-    layout_menu_->blockSignals(false);
+    home_page_layout_->blockSignals(false);
 }
 
 auto Window::eventFilter(QObject *watched, QEvent *event) -> bool
@@ -212,10 +211,18 @@ auto Window::eventFilter(QObject *watched, QEvent *event) -> bool
     if (event->type() == QEvent::MouseButtonPress) {
         auto *mouse_event = static_cast<QMouseEvent *>(event);
 
-        // map the child widgets position to avoid race conditions with our custom window movement
+        // map the child widgets position on our main window, this is done to avoid race conditions with our custom dragging
         if (mouse_event->button() == Qt::LeftButton) {
-            auto *child_widget = static_cast<QWidget *>(watched);
-            mouse_click_position_ = child_widget->mapTo(this, mouse_event->pos());
+            const auto object_name = watched->objectName();
+
+            if (object_name == "minimize_button" || object_name == "maximize_button" || object_name == "close_button") {
+                // since the these buttons are located on the top bar, we have to invalidate the position to avoid dragging,
+                // for some reason this does not apply to buttons that create their own popup menu, they dont drag by default
+                mouse_click_position_ = {-1, -1};
+            } else {
+                auto *child_widget = static_cast<QWidget *>(watched);
+                mouse_click_position_ = child_widget->mapTo(this, mouse_event->pos());
+            }
         }
     }
 
@@ -225,7 +232,7 @@ auto Window::eventFilter(QObject *watched, QEvent *event) -> bool
 auto Window::keyPressEvent(QKeyEvent *event) -> void
 {
     if (event->key() == Qt::Key_Escape) {
-        const bool account_table_empty = table_accounts_->selectedItems().isEmpty();
+        const bool account_table_empty = accounts_table_->selectedItems().isEmpty();
         if (!account_table_empty) reset_account_selection();
     }
 
@@ -236,7 +243,7 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
 {
     if (event->buttons() == Qt::LeftButton) {
         const auto [x, y] = mouse_click_position_;
-        const bool in_drag_area = (y > 1 && y < 35); // FIXME should use the top bars dimensions instead of this lol
+        const bool in_drag_area = (y > 0 && y < top_bar_widget_->height());
 
         if (in_drag_area) {
             const auto new_position = event->globalPosition().toPoint() - mouse_click_position_;
@@ -255,53 +262,53 @@ auto Window::mousePressEvent(QMouseEvent *event) -> void
 
 auto Window::on_login_progress_update(const QString &message) -> void
 {
-    label_progress_status_->setText(message);
+    progress_status_label_->setText(message);
 }
 
 auto Window::on_login_finished(bool success, const QString &message) -> void
 {
-    label_progress_status_->setText(message);
-    button_progress_back_->show();
+    progress_status_label_->setText(message);
+    progress_back_button_->show();
 
     if (success) {
-        label_progress_status_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().success.name()));
+        progress_status_label_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().success.name()));
     } else {
-        label_progress_status_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().error.name()));
+        progress_status_label_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().error.name()));
     }
 }
 
 auto Window::refresh_accounts_table() -> void
 {
-    table_accounts_->blockSignals(true);
+    accounts_table_->blockSignals(true);
 
-    table_accounts_->setRowCount(0);
-    current_accounts_ = account_config_->get_accounts();
+    accounts_table_->setRowCount(0);
+    accounts_cache_ = account_config_->get_accounts();
 
-    for (const auto &account : current_accounts_) {
-        const int row = table_accounts_->rowCount();
-        table_accounts_->insertRow(row);
-        table_accounts_->setItem(row, 0, new QTableWidgetItem{account.note});
-        table_accounts_->setItem(row, 1, new QTableWidgetItem{account.username});
+    for (const auto &account : accounts_cache_) {
+        const int row = accounts_table_->rowCount();
+        accounts_table_->insertRow(row);
+        accounts_table_->setItem(row, 0, new QTableWidgetItem{account.note});
+        accounts_table_->setItem(row, 1, new QTableWidgetItem{account.username});
 
         auto *password_item = new Password_Table_Widget{};
         password_item->setData(Qt::DisplayRole, QString("************"));
         password_item->setData(Qt::UserRole, account.password);
-        table_accounts_->setItem(row, 2, password_item);
+        accounts_table_->setItem(row, 2, password_item);
     }
 
-    table_accounts_->blockSignals(false);
+    accounts_table_->blockSignals(false);
     handle_table_selection_changed();
 }
 
 auto Window::generate_stylesheet(const core::Theme &theme) -> QString
 {
-    const auto colors = QString{"QMainWindow, QDialog, QWidget#central_widget, QWidget#widget_menu, "
-                                "QWidget#widget_accounts_content, "
-                                "QWidget#widget_progress_page {"
+    const auto colors = QString{"QMainWindow, QDialog, QWidget#central_widget, QWidget#home_page, "
+                                "QWidget#accounts_page, "
+                                "QWidget#progress_page {"
                                 "    background-color: %1;"
                                 "    color: %2;"
                                 "}"
-                                "QWidget#widget_top_bar, QWidget#widget_bottom_bar {"
+                                "QWidget#top_bar_widget, QWidget#bottom_bar_widget {"
                                 "    background-color: %8;"
                                 "    border-color: %3;"
                                 "}"
@@ -326,18 +333,18 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "    color: %7;"
                                 "    border-color: %3;"
                                 "}"
-                                "QPushButton#bannerButton {"
+                                "QPushButton#banner_button {"
                                 "    background-color: transparent;"
                                 "    border-color: %9;"
                                 "}"
-                                "QPushButton#bannerButton:hover {"
+                                "QPushButton#banner_button:hover {"
                                 "    border-color: %10;"
                                 "}"
-                                "QPushButton#homeButton, QPushButton#optionsButton {"
+                                "QPushButton#home_button, QPushButton#options_button {"
                                 "    background-color: transparent;"
                                 "    border-color: transparent;"
                                 "}"
-                                "QPushButton#homeButton:hover, QPushButton#optionsButton:hover {"
+                                "QPushButton#home_button:hover, QPushButton#options_button:hover {"
                                 "    background-color: %5;"
                                 "}"
                                 "QTableWidget {"
@@ -364,7 +371,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "    color: %2;"
                                 "    border-color: %3;"
                                 "}"
-                                "QLabel#gameIconPlaceholder {"
+                                "QLabel#game_icon_placeholder {"
                                 "    background-color: transparent;"
                                 "    border-color: transparent;"
                                 "}"}
@@ -372,7 +379,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                  theme.button_hover.name(), theme.button_disabled.name(), theme.text_disabled.name(),
                                  theme.background_light.name(), theme.accent.name(), theme.accent_hover.name());
 
-    const auto layout = QString{"QWidget#widget_top_bar, QWidget#widget_bottom_bar {"
+    const auto layout = QString{"QWidget#top_bar_widget, QWidget#bottom_bar_widget {"
                                 "    border-style: solid;"
                                 "    border-top-width: 1px;"
                                 "    border-bottom-width: 1px;"
@@ -394,15 +401,15 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "    padding: 5px 15px;"
                                 "    border-radius: 5px;"
                                 "}"
-                                "QPushButton#bannerButton {"
+                                "QPushButton#banner_button {"
                                 "    border-width: 3px;"
                                 "    padding: 0px;"
                                 "}"
-                                "QPushButton#homeButton, QPushButton#optionsButton {"
+                                "QPushButton#home_button, QPushButton#options_button {"
                                 "    border: none;"
                                 "    padding: 2px;"
                                 "}"
-                                "QPushButton#optionsButton::menu-indicator {"
+                                "QPushButton#options_button::menu-indicator {"
                                 "    image: none;"
                                 "    width: 0px;"
                                 "}"
@@ -419,7 +426,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "    padding: 5px;"
                                 "    border-radius: 3px;"
                                 "}"
-                                "QLabel#gameIconPlaceholder {"
+                                "QLabel#game_icon_placeholder {"
                                 "    border: none;"
                                 "}"};
 
@@ -437,64 +444,55 @@ auto Window::apply_theme() -> void
 auto Window::handle_customize_theme_button_click() -> void
 {
     auto theme = theme_config_->load();
-    Theme_Editor editor(theme, this);
+    auto editor = Theme_Editor{theme, this};
 
     if (editor.exec() == QDialog::Accepted) {
         if (theme_config_->save(theme)) {
             apply_theme();
         } else {
-            QMessageBox::critical(this, "Theme Error", "Failed to save the updated theme.");
+            QMessageBox::critical(this, "Theme Error", "Failed to save the updated theme");
         }
     }
 }
 
 auto Window::handle_home_button_click() -> void
 {
-    auto *layout = qobject_cast<QHBoxLayout *>(widget_top_bar_->layout());
-    layout->removeWidget(button_top_bar_options_);
-    layout->insertWidget(0, button_top_bar_options_, 0, Qt::AlignLeft);
-
-    button_top_bar_home_->hide();
-    widget_bottom_bar_->hide();
+    home_button_->hide();
+    bottom_bar_widget_->hide();
     reset_account_selection();
 
-    widget_main_stacked_->setCurrentIndex(static_cast<int>(Page::Home));
-    widget_top_bar_->show();
+    main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Home));
+    top_bar_widget_->show();
 }
 
 auto Window::handle_game_banner_click(riot::Game game) -> void
 {
     current_game_ = game;
-
     update_bottom_bar_content(game);
-    widget_main_stacked_->setCurrentIndex(static_cast<int>(Page::Accounts));
+    main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Accounts));
 
-    auto *layout = qobject_cast<QHBoxLayout *>(widget_top_bar_->layout());
-    layout->removeWidget(button_top_bar_options_);
-    layout->addWidget(button_top_bar_options_, 0, Qt::AlignRight);
-
-    widget_top_bar_->show();
-    button_top_bar_home_->show();
-    widget_bottom_bar_->show();
+    top_bar_widget_->show();
+    home_button_->show();
+    bottom_bar_widget_->show();
 }
 
 auto Window::handle_table_selection_changed() -> void
 {
-    const bool row_is_selected = !table_accounts_->selectedItems().isEmpty();
-    button_login_->setEnabled(row_is_selected);
-    button_remove_account_->setEnabled(row_is_selected);
+    const bool row_is_selected = !accounts_table_->selectedItems().isEmpty();
+    login_button_->setEnabled(row_is_selected);
+    remove_account_button_->setEnabled(row_is_selected);
 }
 
 auto Window::handle_login_button_click() -> void
 {
-    const int row = table_accounts_->currentRow();
+    const int row = accounts_table_->currentRow();
     if (row == -1) return;
 
-    widget_top_bar_->hide();
-    widget_bottom_bar_->hide();
+    top_bar_widget_->hide();
+    bottom_bar_widget_->hide();
 
-    label_progress_status_->setText("Initializing...");
-    button_progress_back_->hide();
+    progress_status_label_->setText("Initializing...");
+    progress_back_button_->hide();
 
     QString icon_filename;
     switch (current_game_) {
@@ -506,13 +504,13 @@ auto Window::handle_login_button_click() -> void
 
     if (!icon_filename.isEmpty()) {
         const auto game_icon_pixmap = QPixmap(game_icons_dir_ + icon_filename);
-        label_progress_game_icon_->setPixmap(game_icon_pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        progress_game_icon_label_->setPixmap(game_icon_pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }
 
-    widget_main_stacked_->setCurrentIndex(static_cast<int>(Page::Progress));
+    main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Progress));
 
-    const auto username = table_accounts_->item(row, 1)->text();
-    const auto password = table_accounts_->item(row, 2)->data(Qt::UserRole).toString();
+    const auto username = accounts_table_->item(row, 1)->text();
+    const auto password = accounts_table_->item(row, 2)->data(Qt::UserRole).toString();
 
     reset_account_selection();
     emit start_login(current_game_, username, password);
@@ -520,35 +518,35 @@ auto Window::handle_login_button_click() -> void
 
 auto Window::handle_add_account_button_click() -> void
 {
-    Add_Account_Dialog dialog(this);
+    auto dialog = Add_Account_Dialog{this};
     if (dialog.exec() == QDialog::Accepted) {
-        core::Account new_account;
+        auto new_account = core::Account{};
         new_account.note = dialog.get_note();
         new_account.username = dialog.get_username();
         new_account.password = dialog.get_password();
         if (new_account.username.isEmpty() || new_account.password.isEmpty()) {
-            QMessageBox::critical(this, "Add Account", "Username and password cannot be empty.");
+            QMessageBox::critical(this, "Add Account", "Username and password cannot be empty");
             return;
         }
 
         if (account_config_->add_account(new_account)) {
             refresh_accounts_table();
-            table_accounts_->setCurrentCell(table_accounts_->rowCount() - 1, 0);
+            accounts_table_->setCurrentCell(accounts_table_->rowCount() - 1, 0);
         } else {
-            QMessageBox::critical(this, "Add Account", "Failed to save the new account.");
+            QMessageBox::critical(this, "Add Account", "Failed to save the new account");
         }
     }
 }
 
 auto Window::handle_remove_account_button_click() -> void
 {
-    const int current_row = table_accounts_->currentRow();
+    const int current_row = accounts_table_->currentRow();
     if (current_row == -1) {
-        QMessageBox::warning(this, "Delete Account", "Please select an account to delete.");
+        QMessageBox::warning(this, "Delete Account", "Please select an account to delete");
         return;
     }
 
-    const auto &account_to_delete = current_accounts_[current_row];
+    const auto &account_to_delete = accounts_cache_[current_row];
     const auto confirmation = QString{"Are you sure you want to delete '%1'?"}.arg(account_to_delete.username);
     const auto reply = QMessageBox::warning(this, "Confirm Deletion", confirmation, QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::No) return;
@@ -556,16 +554,16 @@ auto Window::handle_remove_account_button_click() -> void
     if (account_config_->remove_account(current_row)) {
         refresh_accounts_table();
     } else {
-        QMessageBox::critical(this, "Deletion Error", "Failed to remove the account from the configuration file.");
+        QMessageBox::critical(this, "Deletion Error", "Failed to remove the account from the configuration file");
     }
 }
 
 auto Window::handle_account_cell_updated(int row, int column) -> void
 {
-    if (row < 0 || row >= current_accounts_.size()) return;
-    auto updated_account = current_accounts_[row];
+    if (row < 0 || row >= accounts_cache_.size()) return;
+    auto updated_account = accounts_cache_[row];
 
-    auto *item = table_accounts_->item(row, column);
+    auto *item = accounts_table_->item(row, column);
     if (!item) return;
 
     const QString new_value = item->text();
@@ -574,37 +572,46 @@ auto Window::handle_account_cell_updated(int row, int column) -> void
     case 1: updated_account.username = new_value; break;
     case 2:
         updated_account.password = new_value;
-        table_accounts_->blockSignals(true);
+        accounts_table_->blockSignals(true);
         item->setData(Qt::UserRole, new_value);
         item->setText("************");
-        table_accounts_->blockSignals(false);
+        accounts_table_->blockSignals(false);
         break;
     }
 
     if (!account_config_->update_account(row, updated_account)) {
-        QMessageBox::critical(this, "Save Error", "Failed to save changes to the account.");
+        QMessageBox::critical(this, "Save Error", "Failed to save changes to the account");
         refresh_accounts_table();
     } else {
-        current_accounts_[row] = updated_account;
+        accounts_cache_[row] = updated_account;
     }
 }
 
 auto Window::setup_common_ui() -> void
 {
-    widget_top_bar_->setObjectName("widget_top_bar");
-    widget_top_bar_->setFixedHeight(40);
+    top_bar_widget_->setObjectName("top_bar_widget");
+    top_bar_widget_->setFixedHeight(40);
 
-    auto *top_bar_layout = new QHBoxLayout(widget_top_bar_);
+    auto *top_bar_layout = new QHBoxLayout{top_bar_widget_};
     top_bar_layout->setContentsMargins(5, 0, 5, 0);
     top_bar_layout->setSpacing(5);
 
-    button_top_bar_home_->setObjectName("homeButton");
-    button_top_bar_home_->setIcon(QIcon::fromTheme("document-revert"));
+    minimize_button_->setObjectName("minimize_button");
+    minimize_button_->setIcon(QIcon::fromTheme("list-remove"));
 
-    button_top_bar_options_->setObjectName("optionsButton");
-    button_top_bar_options_->setIcon(QIcon::fromTheme("document-properties"));
+    maximize_button_->setObjectName("maximize_button");
+    maximize_button_->setIcon(QIcon::fromTheme("view-fullscreen"));
 
-    auto *options_menu = new QMenu(button_top_bar_options_);
+    close_button_->setObjectName("close_button");
+    close_button_->setIcon(QIcon::fromTheme("window-close"));
+
+    home_button_->setObjectName("home_button");
+    home_button_->setIcon(QIcon::fromTheme("document-revert"));
+
+    options_button_->setObjectName("options_button");
+    options_button_->setIcon(QIcon::fromTheme("document-properties"));
+
+    auto *options_menu = new QMenu{options_button_};
     auto *action_customize_theme = options_menu->addAction("customize theme");
     action_customize_theme->setIcon(QIcon::fromTheme("weather-clear"));
     connect(action_customize_theme, &QAction::triggered, this, &Window::handle_customize_theme_button_click);
@@ -626,40 +633,62 @@ auto Window::setup_common_ui() -> void
 
     auto *action_close = options_menu->addAction("close");
     action_close->setIcon(QIcon::fromTheme("window-close"));
+    connect(action_close, &QAction::triggered, this, &QWidget::close);
 
-    button_top_bar_options_->setMenu(options_menu);
-    top_bar_layout->addWidget(button_top_bar_options_, 0, Qt::AlignLeft);
-    top_bar_layout->addWidget(button_top_bar_home_, 0, Qt::AlignLeft);
+    options_button_->setMenu(options_menu);
+
+    //
+    // layout for top bar
+    //
+
+    top_bar_layout->addWidget(options_button_);
+    top_bar_layout->addWidget(home_button_);
     top_bar_layout->addStretch();
-    button_top_bar_home_->hide();
-    QObject::connect(button_top_bar_home_, &QPushButton::clicked, this, &Window::handle_home_button_click);
+    top_bar_layout->addWidget(minimize_button_);
+    top_bar_layout->addWidget(maximize_button_);
+    top_bar_layout->addWidget(close_button_);
+
+    home_button_->hide();
+    connect(home_button_, &QPushButton::clicked, this, &Window::handle_home_button_click);
+    connect(close_button_, &QPushButton::clicked, this, &QWidget::close);
+    connect(minimize_button_, &QPushButton::clicked, this, &QWidget::showMinimized);
+    connect(maximize_button_, &QPushButton::clicked, this, [this] {
+        const bool is_maximized = QMainWindow::isMaximized();
+
+        if (is_maximized) {
+            QMainWindow::showNormal();
+        } else {
+            QMainWindow::showMaximized();
+        }
+    });
 
     handle_home_button_click();
-    widget_bottom_bar_->setObjectName("widget_bottom_bar");
-    widget_bottom_bar_->setFixedHeight(50);
 
-    auto *bottom_bar_layout = new QHBoxLayout{widget_bottom_bar_};
+    bottom_bar_widget_->setObjectName("bottom_bar_widget");
+    bottom_bar_widget_->setFixedHeight(50);
+
+    auto *bottom_bar_layout = new QHBoxLayout{bottom_bar_widget_};
     bottom_bar_layout->setContentsMargins(10, 0, 15, 0);
     bottom_bar_layout->setSpacing(10);
 
-    bottom_bar_layout->addWidget(button_login_);
-    bottom_bar_layout->addWidget(button_add_account_);
-    bottom_bar_layout->addWidget(button_remove_account_);
+    bottom_bar_layout->addWidget(login_button_);
+    bottom_bar_layout->addWidget(add_account_button_);
+    bottom_bar_layout->addWidget(remove_account_button_);
     bottom_bar_layout->addStretch();
 
-    label_game_icon_placeholder_->setObjectName("gameIconPlaceholder");
-    label_game_icon_placeholder_->setFixedSize(32, 32);
-    label_game_icon_placeholder_->setContentsMargins(0, 0, 0, 0);
+    bottom_bar_game_icon_label_->setObjectName("game_icon_placeholder");
+    bottom_bar_game_icon_label_->setFixedSize(32, 32);
+    bottom_bar_game_icon_label_->setContentsMargins(0, 0, 0, 0);
 
     auto *game_info_layout = new QHBoxLayout{};
-    game_info_layout->addWidget(label_game_icon_placeholder_);
+    game_info_layout->addWidget(bottom_bar_game_icon_label_);
     game_info_layout->setContentsMargins(0, 0, 0, 0);
     game_info_layout->setSpacing(5);
     bottom_bar_layout->addLayout(game_info_layout);
 
-    QObject::connect(button_login_, &QPushButton::clicked, this, &Window::handle_login_button_click);
-    QObject::connect(button_add_account_, &QPushButton::clicked, this, &Window::handle_add_account_button_click);
-    QObject::connect(button_remove_account_, &QPushButton::clicked, this, &Window::handle_remove_account_button_click);
+    connect(login_button_, &QPushButton::clicked, this, &Window::handle_login_button_click);
+    connect(add_account_button_, &QPushButton::clicked, this, &Window::handle_add_account_button_click);
+    connect(remove_account_button_, &QPushButton::clicked, this, &Window::handle_remove_account_button_click);
 }
 
 auto Window::setup_home_page() -> void
@@ -669,40 +698,40 @@ auto Window::setup_home_page() -> void
     QPushButton *button_teamfight = create_banner_button("tft.jpg", riot::Game::Teamfight_Tactics);
     QPushButton *button_runeterra = create_banner_button("runeterra.jpg", riot::Game::Legends_of_Runeterra);
 
-    layout_menu_->addWidget(button_league);
-    layout_menu_->addWidget(button_valorant);
-    layout_menu_->addWidget(button_teamfight);
-    layout_menu_->addWidget(button_runeterra);
+    home_page_layout_->addWidget(button_league);
+    home_page_layout_->addWidget(button_valorant);
+    home_page_layout_->addWidget(button_teamfight);
+    home_page_layout_->addWidget(button_runeterra);
 
-    QObject::connect(button_league, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::League_of_Legends); });
-    QObject::connect(button_valorant, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Valorant); });
-    QObject::connect(button_teamfight, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Teamfight_Tactics); });
-    QObject::connect(button_runeterra, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Legends_of_Runeterra); });
+    connect(button_league, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::League_of_Legends); });
+    connect(button_valorant, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Valorant); });
+    connect(button_teamfight, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Teamfight_Tactics); });
+    connect(button_runeterra, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Legends_of_Runeterra); });
 }
 
 auto Window::setup_accounts_page() -> void
 {
-    auto *accounts_layout = new QVBoxLayout{widget_accounts_content_};
-    table_accounts_->setHorizontalHeaderLabels({"Note", "Username", "Password"});
-    table_accounts_->horizontalHeader()->setStretchLastSection(true);
-    table_accounts_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    table_accounts_->setSelectionMode(QAbstractItemView::SingleSelection);
-    table_accounts_->setSelectionBehavior(QAbstractItemView::SelectRows);
-    table_accounts_->setEditTriggers(QAbstractItemView::DoubleClicked);
-    table_accounts_->verticalHeader()->setVisible(false);
+    auto *accounts_layout = new QVBoxLayout{accounts_page_};
+    accounts_table_->setHorizontalHeaderLabels({"Note", "Username", "Password"});
+    accounts_table_->horizontalHeader()->setStretchLastSection(true);
+    accounts_table_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    accounts_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+    accounts_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    accounts_table_->setEditTriggers(QAbstractItemView::DoubleClicked);
+    accounts_table_->verticalHeader()->setVisible(false);
 
-    QObject::connect(table_accounts_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
-    accounts_layout->addWidget(label_accounts_);
-    accounts_layout->addWidget(table_accounts_);
+    connect(accounts_table_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
+    accounts_layout->addWidget(accounts_label_);
+    accounts_layout->addWidget(accounts_table_);
 
-    QObject::connect(table_accounts_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
+    connect(accounts_table_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
 
     refresh_accounts_table();
 }
 
 auto Window::reset_account_selection() -> void
 {
-    table_accounts_->setCurrentCell(-1, -1);
+    accounts_table_->setCurrentCell(-1, -1);
 }
 
 auto Window::update_bottom_bar_content(riot::Game game) -> void
@@ -717,21 +746,21 @@ auto Window::update_bottom_bar_content(riot::Game game) -> void
     }
 
     const auto game_icon = QIcon{game_icons_dir_ + icon_filename};
-    label_game_icon_placeholder_->setPixmap(game_icon.pixmap(QSize(32, 32)));
-    label_game_icon_placeholder_->show();
+    bottom_bar_game_icon_label_->setPixmap(game_icon.pixmap(QSize(32, 32)));
+    bottom_bar_game_icon_label_->show();
 
-    button_login_->show();
-    button_add_account_->show();
-    button_remove_account_->show();
+    login_button_->show();
+    add_account_button_->show();
+    remove_account_button_->show();
 }
 
 auto Window::create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *
 {
-    auto *button = new QPushButton("", widget_menu_);
-    button->setObjectName("bannerButton");
+    auto *button = new QPushButton{"", home_page_};
+    button->setObjectName("banner_button");
 
     const QPixmap original_pixmap(banners_dir_ + image_path);
-    original_banner_pixmaps_[game] = original_pixmap;
+    banner_pixmaps_[game] = original_pixmap;
     button->setIcon(QIcon(original_pixmap));
     return button;
 }
