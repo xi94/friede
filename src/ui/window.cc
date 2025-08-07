@@ -664,7 +664,7 @@ auto Window::setup_common_ui() -> void
 
     auto *action_close = options_menu->addAction("close");
     action_close->setIcon(QIcon::fromTheme("window-close"));
-    connect(action_close, &QAction::triggered, this, &QWidget::close);
+    connect(action_close, &QAction::triggered, options_menu, &QWidget::close);
 
     options_button_->setMenu(options_menu);
 
