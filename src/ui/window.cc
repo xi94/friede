@@ -287,7 +287,7 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
                 const int new_width = size.right() - new_x;
                 const int min_width = QMainWindow::minimumWidth();
 
-                // avoid going past min height or window drifts to narnia
+                // avoid going past min width or window drifts to narnia
                 if (new_width >= min_width) {
                     new_size.setX(new_x);
                     new_size.setWidth(new_width);
