@@ -98,6 +98,7 @@ class Window final : public QMainWindow {
     //
     // event handlers
     //
+
     /// @brief handles the click event for the "customize theme" menu action
     auto handle_customize_theme_button_click() -> void;
 
@@ -125,6 +126,7 @@ class Window final : public QMainWindow {
     //
     // ui setup
     //
+
     /// @brief sets up ui elements common to all pages (eg, top bar)
     auto setup_common_ui() -> void;
 
@@ -137,6 +139,7 @@ class Window final : public QMainWindow {
     //
     // ui updates
     //
+
     /// @brief clears the current selection in the accounts table
     auto reset_account_selection() -> void;
 
@@ -146,6 +149,7 @@ class Window final : public QMainWindow {
     //
     // helpers
     //
+
     /// @brief creates a styled qpushbutton for a game banner
     auto create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *;
 
@@ -153,6 +157,7 @@ class Window final : public QMainWindow {
     //
     // core logic & data
     //
+
     Updater *updater_;
     core::Theme_Config *theme_config_;
     core::Account_Config *account_config_;
@@ -164,6 +169,7 @@ class Window final : public QMainWindow {
     //
     // ui state
     //
+
     QPoint mouse_click_position_;
     QString banners_dir_;
     QString game_icons_dir_;
@@ -171,6 +177,7 @@ class Window final : public QMainWindow {
     //
     // main layout & pages
     //
+
     QStackedWidget *main_stacked_widget_;
     QWidget *home_page_;
     QHBoxLayout *home_page_layout_;
@@ -180,6 +187,7 @@ class Window final : public QMainWindow {
     //
     // top bar widgets
     //
+
     QWidget *top_bar_widget_;
     QPushButton *home_button_;
     QPushButton *options_button_;
@@ -190,6 +198,7 @@ class Window final : public QMainWindow {
     //
     // bottom bar widgets
     //
+
     QWidget *bottom_bar_widget_;
     QPushButton *login_button_;
     QPushButton *add_account_button_;
@@ -199,12 +208,14 @@ class Window final : public QMainWindow {
     //
     // accounts page widgets
     //
+
     QLabel *accounts_label_;
     QTableWidget *accounts_table_;
 
     //
     // progress page widgets
     //
+
     QLabel *progress_status_label_;
     QPushButton *progress_back_button_;
     QLabel *progress_game_icon_label_;
