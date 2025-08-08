@@ -194,17 +194,27 @@ class Window final : public QMainWindow {
     //
 
     QWidget *top_bar_widget_;
+
     QPushButton *home_button_;
-    QPushButton *options_button_;
     QPushButton *minimize_button_;
     QPushButton *maximize_button_;
     QPushButton *close_button_;
+
+    //
+    // left bar widgets
+    //
+
+    QWidget *left_bar_widget_;
+
+    QPushButton *options_button_;
+    QVBoxLayout *left_bar_layout_;
 
     //
     // bottom bar widgets
     //
 
     QWidget *bottom_bar_widget_;
+
     QPushButton *login_button_;
     QPushButton *add_account_button_;
     QPushButton *remove_account_button_;

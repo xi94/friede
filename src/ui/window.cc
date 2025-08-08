@@ -41,8 +41,10 @@ Window::Window(QWidget *parent)
     , progress_back_button_{new QPushButton{"back"}}
     , progress_game_icon_label_{new QLabel{}}
     , top_bar_widget_{new QWidget{this}}
+    , left_bar_widget_{new QWidget{this}}
+    , left_bar_layout_{new QVBoxLayout{left_bar_widget_}}
     , home_button_{new QPushButton{"\tback", top_bar_widget_}}
-    , options_button_{new QPushButton{"", top_bar_widget_}}
+    , options_button_{new QPushButton{"", left_bar_widget_}}
     , minimize_button_{new QPushButton{"", top_bar_widget_}}
     , maximize_button_{new QPushButton{"", top_bar_widget_}}
     , close_button_{new QPushButton{"", top_bar_widget_}}
@@ -76,7 +78,7 @@ Window::Window(QWidget *parent)
     const auto available_geometry = QGuiApplication::primaryScreen()->availableGeometry();
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), available_geometry));
 
-    auto *main_window_layout = new QVBoxLayout{};
+    auto *main_window_layout = new QHBoxLayout{};
     main_window_layout->setContentsMargins(0, 0, 0, 0);
     main_window_layout->setSpacing(0);
 
@@ -85,7 +87,21 @@ Window::Window(QWidget *parent)
 
     setup_common_ui();
 
-    main_window_layout->addWidget(top_bar_widget_, 0, Qt::AlignTop);
+    left_bar_widget_->setObjectName("left_bar_widget");
+    left_bar_widget_->setFixedWidth(30);
+
+    left_bar_layout_->setContentsMargins(5, 10, 5, 10);
+    left_bar_layout_->setSpacing(10);
+    left_bar_layout_->addStretch();
+
+    main_window_layout->addWidget(left_bar_widget_);
+
+    auto *right_column_widget = new QWidget{};
+    auto *right_column_layout = new QVBoxLayout{right_column_widget};
+    right_column_layout->setContentsMargins(0, 0, 0, 0);
+    right_column_layout->setSpacing(0);
+
+    right_column_layout->addWidget(top_bar_widget_, 0, Qt::AlignTop);
 
     setup_home_page();
     setup_accounts_page();
@@ -109,8 +125,10 @@ Window::Window(QWidget *parent)
     main_stacked_widget_->addWidget(accounts_page_);
     main_stacked_widget_->addWidget(progress_page_);
 
-    main_window_layout->addWidget(main_stacked_widget_);
-    main_window_layout->addWidget(bottom_bar_widget_, 0, Qt::AlignBottom);
+    right_column_layout->addWidget(main_stacked_widget_);
+    right_column_layout->addWidget(bottom_bar_widget_, 0, Qt::AlignBottom);
+
+    main_window_layout->addWidget(right_column_widget);
 
     auto *central_widget = new QWidget{this};
     central_widget->setObjectName("central_widget");
@@ -145,7 +163,7 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
     home_page_layout_->blockSignals(true);
 
     const int available_content_height = height() - top_bar_widget_->height() - bottom_bar_widget_->height();
-    const int available_content_width = width();
+    const int available_content_width = width() - left_bar_widget_->width();
     if (available_content_width <= 0 || available_content_height <= 0) {
         home_page_layout_->blockSignals(false);
         return;
@@ -256,7 +274,7 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
         const QRect size = {window_size_};
         const auto [x, y] = mouse_click_position_;
 
-        const bool is_dragging = (y > resize_margin && y < top_bar_widget_->height());
+        const bool is_dragging = (y > resize_margin && y < top_bar_widget_->height() && x > left_bar_widget_->width());
         if (is_dragging) {
             const auto new_position = event->globalPosition().toPoint() - mouse_click_position_;
             QMainWindow::move(new_position);
@@ -384,7 +402,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "    background-color: %1;"
                                 "    color: %2;"
                                 "}"
-                                "QWidget#top_bar_widget, QWidget#bottom_bar_widget {"
+                                "QWidget#top_bar_widget, QWidget#bottom_bar_widget, QWidget#left_bar_widget {"
                                 "    background-color: %8;"
                                 "    border-color: %3;"
                                 "}"
@@ -455,12 +473,17 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                  theme.button_hover.name(), theme.button_disabled.name(), theme.text_disabled.name(),
                                  theme.background_light.name(), theme.accent.name(), theme.accent_hover.name());
 
-    const auto layout = QString{"QWidget#top_bar_widget, QWidget#bottom_bar_widget {"
+    const auto layout = QString{"QWidget#top_bar_widget {"
                                 "    border-style: solid;"
-                                "    border-top-width: 1px;"
-                                "    border-bottom-width: 1px;"
-                                "    border-left-width: 0px;"
-                                "    border-right-width: 0px;"
+                                "    border-width: 0px 0px 1px 0px;"
+                                "}"
+                                "QWidget#bottom_bar_widget {"
+                                "    border-style: solid;"
+                                "    border-width: 1px 0px 0px 0px;"
+                                "}"
+                                "QWidget#left_bar_widget {"
+                                "    border-style: solid;"
+                                "    border-width: 0px 1px 0px 0px;"
                                 "}"
                                 "QMenu {"
                                 "    border: 1px solid;"
@@ -713,6 +736,7 @@ auto Window::setup_common_ui() -> void
 
     options_button_->setObjectName("options_button");
     options_button_->setIcon(QIcon::fromTheme("document-properties"));
+    options_button_->setFixedSize(20, 20);
 
     auto *options_menu = new QMenu{options_button_};
     auto *action_customize_theme = options_menu->addAction("customize theme");
@@ -744,12 +768,17 @@ auto Window::setup_common_ui() -> void
     // layout for top bar
     //
 
-    top_bar_layout->addWidget(options_button_);
     top_bar_layout->addWidget(home_button_);
     top_bar_layout->addStretch();
     top_bar_layout->addWidget(minimize_button_);
     top_bar_layout->addWidget(maximize_button_);
     top_bar_layout->addWidget(close_button_);
+
+    //
+    // layout for left bar
+    //
+    left_bar_layout_->addWidget(options_button_);
+    left_bar_layout_->addStretch();
 
     home_button_->hide();
     connect(home_button_, &QPushButton::clicked, this, &Window::handle_home_button_click);
@@ -757,7 +786,6 @@ auto Window::setup_common_ui() -> void
     connect(minimize_button_, &QPushButton::clicked, this, &QWidget::showMinimized);
     connect(maximize_button_, &QPushButton::clicked, this, [this] {
         const bool is_maximized = QMainWindow::isMaximized();
-
         if (is_maximized) {
             QMainWindow::showNormal();
         } else {
