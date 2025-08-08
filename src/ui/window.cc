@@ -9,6 +9,8 @@
 #include "ui/password_table_widget.hpp"
 #include "ui/theme_editor.hpp"
 
+#include "central_widget.hpp"
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDesktopServices>
@@ -73,13 +75,15 @@ Window::Window(QWidget *parent)
 
     setMinimumSize(750, 450);
     setWindowTitle("a flame alighteth");
+
     QMainWindow::setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    setAttribute(Qt::WA_TranslucentBackground);
 
     const auto available_geometry = QGuiApplication::primaryScreen()->availableGeometry();
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), available_geometry));
 
     auto *main_window_layout = new QHBoxLayout{};
-    main_window_layout->setContentsMargins(0, 0, 0, 0);
+    main_window_layout->setContentsMargins(5, 5, 5, 5);
     main_window_layout->setSpacing(0);
 
     home_page_layout_->setSpacing(20);
@@ -100,7 +104,6 @@ Window::Window(QWidget *parent)
     auto *right_column_layout = new QVBoxLayout{right_column_widget};
     right_column_layout->setContentsMargins(0, 0, 0, 0);
     right_column_layout->setSpacing(0);
-
     right_column_layout->addWidget(top_bar_widget_, 0, Qt::AlignTop);
 
     setup_home_page();
@@ -130,7 +133,7 @@ Window::Window(QWidget *parent)
 
     main_window_layout->addWidget(right_column_widget);
 
-    auto *central_widget = new QWidget{this};
+    auto *central_widget = new Central_Widget{theme_config_, this};
     central_widget->setObjectName("central_widget");
     central_widget->setLayout(main_window_layout);
     setCentralWidget(central_widget);
@@ -401,6 +404,9 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "QWidget#progress_page {"
                                 "    background-color: %1;"
                                 "    color: %2;"
+                                "}"
+                                "QWidget#central_widget {"
+                                "    background-color: transparent;"
                                 "}"
                                 "QWidget#top_bar_widget, QWidget#bottom_bar_widget, QWidget#left_bar_widget {"
                                 "    background-color: %8;"
