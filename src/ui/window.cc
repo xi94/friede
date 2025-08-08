@@ -1,7 +1,6 @@
 // =================================================================================
 // ui/window.cc
 // =================================================================================
-
 #include "ui/window.hpp"
 
 #include "core/account.hpp"
@@ -42,14 +41,10 @@ Window::Window(QWidget *parent)
     , progress_status_label_{new QLabel{"Initializing..."}}
     , progress_back_button_{new QPushButton{"back"}}
     , progress_game_icon_label_{new QLabel{}}
-    , top_bar_widget_{new QWidget{this}}
+    , title_bar_{new Title_Bar{this, "a flame alighteth"}}
     , left_bar_widget_{new QWidget{this}}
     , left_bar_layout_{new QVBoxLayout{left_bar_widget_}}
-    , home_button_{new QPushButton{"\tback", top_bar_widget_}}
     , options_button_{new QPushButton{"", left_bar_widget_}}
-    , minimize_button_{new QPushButton{"", top_bar_widget_}}
-    , maximize_button_{new QPushButton{"", top_bar_widget_}}
-    , close_button_{new QPushButton{"", top_bar_widget_}}
     , bottom_bar_widget_{new QWidget{this}}
     , login_button_{new QPushButton{"Login", bottom_bar_widget_}}
     , add_account_button_{new QPushButton{"Add Account", bottom_bar_widget_}}
@@ -83,28 +78,20 @@ Window::Window(QWidget *parent)
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), available_geometry));
 
     auto *main_window_layout = new QHBoxLayout{};
-    main_window_layout->setContentsMargins(5, 5, 5, 5);
+    main_window_layout->setContentsMargins(3, 3, 3, 3);
     main_window_layout->setSpacing(0);
 
     home_page_layout_->setSpacing(20);
     home_page_layout_->setContentsMargins(20, 0, 20, 0);
 
-    setup_common_ui();
-
-    left_bar_widget_->setObjectName("left_bar_widget");
-    left_bar_widget_->setFixedWidth(30);
-
-    left_bar_layout_->setContentsMargins(5, 10, 5, 10);
-    left_bar_layout_->setSpacing(10);
-    left_bar_layout_->addStretch();
-
+    setup_left_bar();
     main_window_layout->addWidget(left_bar_widget_);
 
     auto *right_column_widget = new QWidget{};
     auto *right_column_layout = new QVBoxLayout{right_column_widget};
     right_column_layout->setContentsMargins(0, 0, 0, 0);
     right_column_layout->setSpacing(0);
-    right_column_layout->addWidget(top_bar_widget_, 0, Qt::AlignTop);
+    right_column_layout->addWidget(title_bar_, 0, Qt::AlignTop);
 
     setup_home_page();
     setup_accounts_page();
@@ -129,6 +116,7 @@ Window::Window(QWidget *parent)
     main_stacked_widget_->addWidget(progress_page_);
 
     right_column_layout->addWidget(main_stacked_widget_);
+    setup_bottom_bar();
     right_column_layout->addWidget(bottom_bar_widget_, 0, Qt::AlignBottom);
 
     main_window_layout->addWidget(right_column_widget);
@@ -139,16 +127,9 @@ Window::Window(QWidget *parent)
     setCentralWidget(central_widget);
 
     bottom_bar_widget_->hide();
-    bottom_bar_game_icon_label_->hide();
-    login_button_->hide();
-    add_account_button_->hide();
-    remove_account_button_->hide();
-    top_bar_widget_->show();
+    handle_home_button_click();
 
-    // registering event filters to all our push buttons after all the widgets are created to avoid race condition with dragging
-    for (auto *button : QMainWindow::findChildren<QPushButton *>()) {
-        button->installEventFilter(this);
-    }
+    connect(title_bar_, &Title_Bar::home_button_clicked, this, &Window::handle_home_button_click);
 
     apply_theme();
     updater_->check_for_updates();
@@ -165,7 +146,7 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
     QMainWindow::resizeEvent(event);
     home_page_layout_->blockSignals(true);
 
-    const int available_content_height = height() - top_bar_widget_->height() - bottom_bar_widget_->height();
+    const int available_content_height = height() - title_bar_->height() - bottom_bar_widget_->height();
     const int available_content_width = width() - left_bar_widget_->width();
     if (available_content_width <= 0 || available_content_height <= 0) {
         home_page_layout_->blockSignals(false);
@@ -232,36 +213,12 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
     home_page_layout_->blockSignals(false);
 }
 
-auto Window::eventFilter(QObject *watched, QEvent *event) -> bool
-{
-    if (event->type() == QEvent::MouseButtonPress) {
-        auto *mouse_event = static_cast<QMouseEvent *>(event);
-
-        // map the child widgets position on our main window, this is done to avoid race conditions with our custom dragging
-        if (mouse_event->button() == Qt::LeftButton) {
-            const auto object_name = watched->objectName();
-
-            if (object_name == "minimize_button" || object_name == "maximize_button" || object_name == "close_button") {
-                // since the these buttons are located on the top bar, we have to invalidate the position to avoid dragging,
-                // for some reason this does not apply to buttons that create their own popup menu, they dont drag by default
-                mouse_click_position_ = {-1, -1};
-            } else {
-                auto *child_widget = static_cast<QWidget *>(watched);
-                mouse_click_position_ = child_widget->mapTo(this, mouse_event->pos());
-            }
-        }
-    }
-
-    return QMainWindow::eventFilter(watched, event);
-}
-
 auto Window::keyPressEvent(QKeyEvent *event) -> void
 {
     if (event->key() == Qt::Key_Escape) {
         const bool account_table_empty = accounts_table_->selectedItems().isEmpty();
         if (!account_table_empty) reset_account_selection();
     }
-
     QMainWindow::keyPressEvent(event);
 }
 
@@ -271,33 +228,17 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
     if (event->buttons() == Qt::LeftButton) {
         constexpr int resize_margin = 8;
 
-        const QRect initial_size = window_size_;
-        const QPoint initial_position = mouse_click_position_;
-
         const QRect size = {window_size_};
         const auto [x, y] = mouse_click_position_;
-
-        const bool is_dragging = (y > resize_margin && y < top_bar_widget_->height() && x > left_bar_widget_->width());
-        if (is_dragging) {
-            const auto new_position = event->globalPosition().toPoint() - mouse_click_position_;
-            QMainWindow::move(new_position);
-            return;
-        }
-
-        //
-        // window resizing
-        //
-
-        // FIXME the images are a bit jittery for left / up movement due to our moving with resize calculations
 
         const bool on_top_edge = y <= resize_margin;
         const bool on_left_edge = x <= resize_margin;
         const bool on_right_edge = x >= size.width() - resize_margin;
         const bool on_bottom_edge = y >= size.height() - resize_margin;
 
+        // FIXME the images are a bit jittery for left / up movement due to our moving with resize calculations
         const bool is_resizing = on_left_edge || on_right_edge || on_top_edge || on_bottom_edge;
         if (is_resizing) {
-            // TODO this isnt size, it updates both position and size, editor renaming feature is broken, and im too tired to rename it now
             QRect new_size = {size};
 
             if (on_right_edge) {
@@ -308,7 +249,6 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
                 const int new_width = size.right() - new_x;
                 const int min_width = QMainWindow::minimumWidth();
 
-                // avoid going past min width or window drifts to narnia
                 if (new_width >= min_width) {
                     new_size.setX(new_x);
                     new_size.setWidth(new_width);
@@ -317,7 +257,6 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
                     new_size.setX(size.right() - min_width);
                 }
             }
-
             if (on_bottom_edge) {
                 const int delta_y = event->pos().y() - y;
                 new_size.setHeight(size.height() + delta_y);
@@ -326,7 +265,6 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
                 const int new_height = size.bottom() - new_y;
                 const int min_height = QMainWindow::minimumHeight();
 
-                // avoid going past min height or window drifts to narnia
                 if (new_height >= min_height) {
                     new_size.setY(new_y);
                     new_size.setHeight(new_height);
@@ -343,10 +281,8 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
 
 auto Window::mousePressEvent(QMouseEvent *event) -> void
 {
-    // maybe this should be checking if the mouse is within the window size we just stored?
     if (event->button() == Qt::LeftButton) {
         grabMouse();
-
         window_size_ = QMainWindow::geometry();
         mouse_click_position_ = event->pos();
     }
@@ -366,6 +302,7 @@ auto Window::on_login_finished(bool success, const QString &message) -> void
 {
     progress_status_label_->setText(message);
     progress_back_button_->show();
+    title_bar_->show();
 
     if (success) {
         progress_status_label_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().success.name()));
@@ -408,7 +345,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "QWidget#central_widget {"
                                 "    background-color: transparent;"
                                 "}"
-                                "QWidget#top_bar_widget, QWidget#bottom_bar_widget, QWidget#left_bar_widget {"
+                                "QWidget#title_bar, QWidget#bottom_bar_widget, QWidget#left_bar_widget {"
                                 "    background-color: %8;"
                                 "    border-color: %3;"
                                 "}"
@@ -479,7 +416,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                  theme.button_hover.name(), theme.button_disabled.name(), theme.text_disabled.name(),
                                  theme.background_light.name(), theme.accent.name(), theme.accent_hover.name());
 
-    const auto layout = QString{"QWidget#top_bar_widget {"
+    const auto layout = QString{"QWidget#title_bar {"
                                 "    border-style: solid;"
                                 "    border-width: 0px 0px 1px 0px;"
                                 "}"
@@ -535,7 +472,7 @@ auto Window::generate_stylesheet(const core::Theme &theme) -> QString
                                 "    border: none;"
                                 "}"};
 
-    return layout + colors;
+    return colors + layout;
 }
 
 auto Window::apply_theme() -> void
@@ -562,12 +499,12 @@ auto Window::handle_customize_theme_button_click() -> void
 
 auto Window::handle_home_button_click() -> void
 {
-    home_button_->hide();
+    title_bar_->set_home_button_visible(false);
     bottom_bar_widget_->hide();
     reset_account_selection();
 
     main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Home));
-    top_bar_widget_->show();
+    title_bar_->show();
 }
 
 auto Window::handle_game_banner_click(riot::Game game) -> void
@@ -576,8 +513,8 @@ auto Window::handle_game_banner_click(riot::Game game) -> void
     update_bottom_bar_content(game);
     main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Accounts));
 
-    top_bar_widget_->show();
-    home_button_->show();
+    title_bar_->show();
+    title_bar_->set_home_button_visible(true);
     bottom_bar_widget_->show();
 }
 
@@ -593,7 +530,7 @@ auto Window::handle_login_button_click() -> void
     const int row = accounts_table_->currentRow();
     if (row == -1) return;
 
-    top_bar_widget_->hide();
+    title_bar_->hide();
     bottom_bar_widget_->hide();
 
     progress_status_label_->setText("Initializing...");
@@ -692,53 +629,13 @@ auto Window::handle_account_cell_updated(int row, int column) -> void
     }
 }
 
-auto Window::setup_common_ui() -> void
+auto Window::setup_left_bar() -> void
 {
-    top_bar_widget_->setObjectName("top_bar_widget");
-    top_bar_widget_->setFixedHeight(40);
+    left_bar_widget_->setObjectName("left_bar_widget");
+    left_bar_widget_->setFixedWidth(30);
 
-    auto *top_bar_layout = new QHBoxLayout{top_bar_widget_};
-    top_bar_layout->setContentsMargins(5, 0, 5, 0);
-
-    constexpr std::string_view control_button_stylesheet = "QPushButton {"
-                                                           "  background-color: rgba(255, 255, 255, 0);"
-                                                           "  border-color: rgba(255, 255, 255, 0);"
-                                                           "}"
-                                                           "QPushButton#maximize_button:Hover,"
-                                                           "QPushButton#minimize_button:Hover {"
-                                                           "  background-color: rgba(200, 200, 200, 30);"
-                                                           "}"
-                                                           "QPushButton#close_button:Hover {"
-                                                           "  background-color: rgba(240, 0, 0, 200);"
-                                                           "}"
-                                                           "QPushButton#maximize_button:Pressed,"
-                                                           "QPushButton#minimize_button:Pressed {"
-                                                           "  background-color: rgba(100, 100, 100, 30);"
-                                                           "}"
-                                                           "QPushButton#close_button:Pressed {"
-                                                           "  background-color: rgba(150, 0, 0, 200);"
-                                                           "}";
-
-    minimize_button_->setObjectName("minimize_button");
-    minimize_button_->setIcon(QIcon::fromTheme("list-remove"));
-    minimize_button_->setFixedSize(30, 30);
-    minimize_button_->setIconSize({12, 12});
-    minimize_button_->setStyleSheet(control_button_stylesheet.data());
-
-    maximize_button_->setObjectName("maximize_button");
-    maximize_button_->setIcon(QIcon::fromTheme("view-fullscreen"));
-    maximize_button_->setFixedSize(30, 30);
-    maximize_button_->setIconSize({14, 14});
-    maximize_button_->setStyleSheet(control_button_stylesheet.data());
-
-    close_button_->setObjectName("close_button");
-    close_button_->setIcon(QIcon::fromTheme("window-close"));
-    close_button_->setFixedSize(30, 30);
-    close_button_->setIconSize({10, 10});
-    close_button_->setStyleSheet(control_button_stylesheet.data());
-
-    home_button_->setObjectName("home_button");
-    home_button_->setIcon(QIcon::fromTheme("document-revert"));
+    left_bar_layout_->setContentsMargins(5, 10, 5, 10);
+    left_bar_layout_->setSpacing(10);
 
     options_button_->setObjectName("options_button");
     options_button_->setIcon(QIcon::fromTheme("document-properties"));
@@ -770,37 +667,12 @@ auto Window::setup_common_ui() -> void
 
     options_button_->setMenu(options_menu);
 
-    //
-    // layout for top bar
-    //
-
-    top_bar_layout->addWidget(home_button_);
-    top_bar_layout->addStretch();
-    top_bar_layout->addWidget(minimize_button_);
-    top_bar_layout->addWidget(maximize_button_);
-    top_bar_layout->addWidget(close_button_);
-
-    //
-    // layout for left bar
-    //
     left_bar_layout_->addWidget(options_button_);
     left_bar_layout_->addStretch();
+}
 
-    home_button_->hide();
-    connect(home_button_, &QPushButton::clicked, this, &Window::handle_home_button_click);
-    connect(close_button_, &QPushButton::clicked, this, &QWidget::close);
-    connect(minimize_button_, &QPushButton::clicked, this, &QWidget::showMinimized);
-    connect(maximize_button_, &QPushButton::clicked, this, [this] {
-        const bool is_maximized = QMainWindow::isMaximized();
-        if (is_maximized) {
-            QMainWindow::showNormal();
-        } else {
-            QMainWindow::showMaximized();
-        }
-    });
-
-    handle_home_button_click();
-
+auto Window::setup_bottom_bar() -> void
+{
     bottom_bar_widget_->setObjectName("bottom_bar_widget");
     bottom_bar_widget_->setFixedHeight(50);
 
@@ -849,6 +721,7 @@ auto Window::setup_home_page() -> void
 auto Window::setup_accounts_page() -> void
 {
     auto *accounts_layout = new QVBoxLayout{accounts_page_};
+
     accounts_table_->setHorizontalHeaderLabels({"Note", "Username", "Password"});
     accounts_table_->horizontalHeader()->setStretchLastSection(true);
     accounts_table_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
