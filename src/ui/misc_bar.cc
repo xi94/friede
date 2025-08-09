@@ -48,7 +48,7 @@ auto Misc_Bar::setup_ui() -> void
 
     auto *action_close = options_menu_->addAction("close");
     action_close->setIcon(QIcon::fromTheme("window-close"));
-    connect(action_close, &QAction::triggered, this, &QWidget::close);
+    connect(action_close, &QAction::triggered, options_menu_, &QWidget::close);
 
     options_button_->setMenu(options_menu_);
 
