@@ -101,10 +101,17 @@ auto Control_Bar::setup_ui() -> void
     layout->setContentsMargins(10, 0, 15, 0);
     layout->setSpacing(10);
 
-    const auto icon_size = QSize{20, 20};
+    constexpr auto icon_size = QSize{20, 20};
+    constexpr auto button_size = QSize{40, 30};
+
     login_button_->setIconSize(icon_size);
+    login_button_->setFixedSize(button_size);
+
     add_account_button_->setIconSize(icon_size);
+    add_account_button_->setFixedSize(button_size);
+
     remove_account_button_->setIconSize(icon_size);
+    remove_account_button_->setFixedSize(button_size);
 
     layout->addWidget(login_button_);
 
