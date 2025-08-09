@@ -35,7 +35,6 @@ Window::Window(QWidget *parent)
     , home_page_{new QWidget{}}
     , home_page_layout_{new QHBoxLayout{home_page_}}
     , accounts_page_{new QWidget{}}
-    , accounts_label_{new QLabel{}}
     , accounts_table_{new QTableWidget{0, 3}}
     , progress_page_{new QWidget{}}
     , progress_status_label_{new QLabel{"Initializing..."}}
@@ -108,7 +107,7 @@ Window::Window(QWidget *parent)
     main_stacked_widget_->addWidget(accounts_page_);
     main_stacked_widget_->addWidget(progress_page_);
 
-    right_column_layout->addWidget(main_stacked_widget_);
+    right_column_layout->addWidget(main_stacked_widget_, 1);
     right_column_layout->addWidget(control_bar_, 0, Qt::AlignBottom);
 
     main_window_layout->addWidget(right_column_widget);
@@ -305,7 +304,9 @@ auto Window::on_login_finished(bool success, const QString &message) -> void
 {
     progress_status_label_->setText(message);
     progress_back_button_->show();
-    title_bar_->show();
+
+    //    misc_bar_->show();
+    //    title_bar_->set_home_button_visible(true);
 
     if (success) {
         progress_status_label_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().success.name()));
@@ -503,6 +504,8 @@ auto Window::handle_customize_theme_button_click() -> void
 auto Window::handle_home_button_click() -> void
 {
     title_bar_->set_home_button_visible(false);
+
+    misc_bar_->show();
     control_bar_->hide();
     reset_account_selection();
 
@@ -532,8 +535,9 @@ auto Window::handle_login_button_click() -> void
     const int row = accounts_table_->currentRow();
     if (row == -1) return;
 
-    title_bar_->hide();
+    misc_bar_->hide();
     control_bar_->hide();
+    title_bar_->set_home_button_visible(false);
 
     progress_status_label_->setText("Initializing...");
     progress_back_button_->hide();
@@ -664,8 +668,9 @@ auto Window::setup_accounts_page() -> void
     accounts_table_->verticalHeader()->setVisible(false);
 
     QMainWindow::connect(accounts_table_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
-    accounts_layout->addWidget(accounts_label_);
-    accounts_layout->addWidget(accounts_table_);
+
+    accounts_layout->addWidget(accounts_table_, 1);
+
     QMainWindow::connect(accounts_table_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
 
     refresh_accounts_table();

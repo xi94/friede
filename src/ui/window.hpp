@@ -178,7 +178,6 @@ class Window final : public QMainWindow {
     Title_Bar *title_bar_;
     Control_Bar *control_bar_;
 
-    QLabel *accounts_label_;
     QTableWidget *accounts_table_;
 
     QLabel *progress_status_label_;
