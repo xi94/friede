@@ -1,8 +1,8 @@
 [Setup]
 AppId={{11A7E9A3-9E3E-4A8E-A329-3B2E0533A899}
 AppName=Friede
-AppVersion=1.2.0
-OutputBaseFilename=friede-setup-v1.2.0
+AppVersion=1.3.0
+OutputBaseFilename=friede-setup-v1.3.0
 DefaultDirName={autopf}\Friede
 DefaultGroupName=Friede
 DisableProgramGroupPage=yes
