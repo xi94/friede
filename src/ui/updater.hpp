@@ -21,7 +21,7 @@ namespace ui {
 class Updater final : public QObject {
     Q_OBJECT
 
-public:
+  public:
     /// @brief Constructs the updater.
     /// @param parent The parent widget, used for displaying dialogs.
     explicit Updater(QWidget *parent = nullptr);
@@ -29,7 +29,7 @@ public:
     /// @brief Begins the process of checking for a new version.
     auto check_for_updates() -> void;
 
-private slots:
+  private slots:
     /// @brief Handles the network reply after checking for updates.
     /// @param reply The network reply containing the appcast data or an error.
     /// @note This function parses the XML, compares versions, and may prompt the user.
@@ -39,12 +39,12 @@ private slots:
     /// @note Saves the installer to a temporary file and attempts to execute it.
     auto on_installer_download_finished() -> void;
 
-private:
+  private:
     /// @brief Downloads the installer from the given URL.
     /// @param url The URL of the installer executable.
     auto download_and_run_installer(const QUrl &url) -> void;
 
-private:
+  private:
     QNetworkAccessManager *network_manager_;
     QNetworkReply *installer_download_reply_ = nullptr;
     QWidget *parent_widget_;
