@@ -21,11 +21,11 @@ class Title_Bar final : public QWidget {
     ~Title_Bar() override = default;
 
     /// @brief Sets the visibility of the home/back button.
-    void set_home_button_visible(bool visible);
+    auto set_home_button_visible(bool visible) -> void;
 
   signals:
     /// @brief Emitted when the home/back button is clicked.
-    void home_button_clicked();
+    auto home_button_clicked() -> void;
 
   protected:
     /// @brief Handles mouse press events to initiate window dragging.
@@ -38,6 +38,7 @@ class Title_Bar final : public QWidget {
     /// @brief Sets up the widgets, layout, and connections for the title bar.
     auto setup_ui() -> void;
 
+  private:
     QLabel *title_label_;
 
     QPushButton *home_button_;

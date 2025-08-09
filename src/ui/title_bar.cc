@@ -99,6 +99,7 @@ void Title_Bar::setup_ui()
     layout->addWidget(home_button_);
     //    layout->addWidget(title_label_);
     layout->addStretch();
+
     layout->addWidget(minimize_button_);
     layout->addWidget(maximize_button_);
     layout->addWidget(close_button_);

@@ -8,8 +8,10 @@
 #include "core/theme.hpp"
 #include "riot/client.hpp"
 #include "theme_editor.hpp"
+#include "ui/control_bar.hpp"
 #include "ui/login_worker.hpp"
-#include "ui/title_bar.hpp" // <-- Include the new header
+#include "ui/misc_bar.hpp"
+#include "ui/title_bar.hpp"
 #include "updater.hpp"
 
 #include <QApplication>
@@ -81,8 +83,8 @@ class Window final : public QMainWindow {
     auto setup_accounts_page() -> void;
 
     auto reset_account_selection() -> void;
-    auto update_bottom_bar_content(riot::Game game) -> void;
     auto create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *;
+    auto update_bottom_bar_content(riot::Game game) -> void;
 
   private:
     Updater *updater_;
@@ -105,15 +107,9 @@ class Window final : public QMainWindow {
     QWidget *accounts_page_;
     QWidget *progress_page_;
 
+    Misc_Bar *misc_bar_;
     Title_Bar *title_bar_;
-    QWidget *left_bar_widget_;
-    QVBoxLayout *left_bar_layout_;
-    QPushButton *options_button_;
-    QWidget *bottom_bar_widget_;
-    QPushButton *login_button_;
-    QPushButton *add_account_button_;
-    QPushButton *remove_account_button_;
-    QLabel *bottom_bar_game_icon_label_;
+    Control_Bar *control_bar_;
 
     QLabel *accounts_label_;
     QTableWidget *accounts_table_;

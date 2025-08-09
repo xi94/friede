@@ -109,7 +109,8 @@ auto build(talon::arguments args) -> void
     add_build_dependencies(args, &workspace);
     set_build_options(args, &workspace);
 
-    generate_moc_files({"ui/window.hpp", "ui/updater.hpp", "ui/login_worker.hpp", "ui/add_account_dialog.hpp", "ui/theme_editor.hpp", "ui/title_bar.hpp"});
+    generate_moc_files({"ui/window.hpp", "ui/updater.hpp", "ui/login_worker.hpp", "ui/add_account_dialog.hpp", "ui/theme_editor.hpp",
+                        "ui/title_bar.hpp", "ui/misc_bar.hpp", "ui/control_bar.hpp"});
 
     // FIXME yeah this doesnt really work if the build folder is there lol
     const bool needs_qt_deps = !fs::exists(workspace.root / "build");

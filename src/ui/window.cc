@@ -1,14 +1,14 @@
 // =================================================================================
 // ui/window.cc
 // =================================================================================
+
 #include "ui/window.hpp"
 
+#include "central_widget.hpp"
 #include "core/account.hpp"
 #include "ui/add_account_dialog.hpp"
 #include "ui/password_table_widget.hpp"
 #include "ui/theme_editor.hpp"
-
-#include "central_widget.hpp"
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -42,14 +42,8 @@ Window::Window(QWidget *parent)
     , progress_back_button_{new QPushButton{"back"}}
     , progress_game_icon_label_{new QLabel{}}
     , title_bar_{new Title_Bar{this, "a flame alighteth"}}
-    , left_bar_widget_{new QWidget{this}}
-    , left_bar_layout_{new QVBoxLayout{left_bar_widget_}}
-    , options_button_{new QPushButton{"", left_bar_widget_}}
-    , bottom_bar_widget_{new QWidget{this}}
-    , login_button_{new QPushButton{"Login", bottom_bar_widget_}}
-    , add_account_button_{new QPushButton{"Add Account", bottom_bar_widget_}}
-    , remove_account_button_{new QPushButton{"Remove Account", bottom_bar_widget_}}
-    , bottom_bar_game_icon_label_{new QLabel{bottom_bar_widget_}}
+    , misc_bar_{new Misc_Bar{this}}
+    , control_bar_{new Control_Bar{this}}
     , updater_{new Updater{this}}
     , theme_config_{new core::Theme_Config{}}
     , account_config_{new core::Account_Config{}}
@@ -61,21 +55,21 @@ Window::Window(QWidget *parent)
     auto *worker = new Login_Worker{};
     worker->moveToThread(&worker_thread_);
 
-    connect(&worker_thread_, &QThread::finished, worker, &QObject::deleteLater);
-    connect(this, &Window::start_login, worker, &Login_Worker::do_login);
-    connect(worker, &Login_Worker::progress_updated, this, &Window::on_login_progress_update);
-    connect(worker, &Login_Worker::login_finished, this, &Window::on_login_finished);
+    QMainWindow::connect(&worker_thread_, &QThread::finished, worker, &QObject::deleteLater);
+    QMainWindow::connect(this, &Window::start_login, worker, &Login_Worker::do_login);
+    QMainWindow::connect(worker, &Login_Worker::progress_updated, this, &Window::on_login_progress_update);
+    QMainWindow::connect(worker, &Login_Worker::login_finished, this, &Window::on_login_finished);
 
     worker_thread_.start();
 
-    setMinimumSize(750, 450);
-    setWindowTitle("a flame alighteth");
+    QMainWindow::setMinimumSize(750, 450);
+    QMainWindow::setWindowTitle("a flame alighteth");
 
+    QMainWindow::setAttribute(Qt::WA_TranslucentBackground);
     QMainWindow::setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    setAttribute(Qt::WA_TranslucentBackground);
 
     const auto available_geometry = QGuiApplication::primaryScreen()->availableGeometry();
-    setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), available_geometry));
+    QMainWindow::setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, QMainWindow::size(), available_geometry));
 
     auto *main_window_layout = new QHBoxLayout{};
     main_window_layout->setContentsMargins(3, 3, 3, 3);
@@ -84,8 +78,7 @@ Window::Window(QWidget *parent)
     home_page_layout_->setSpacing(20);
     home_page_layout_->setContentsMargins(20, 0, 20, 0);
 
-    setup_left_bar();
-    main_window_layout->addWidget(left_bar_widget_);
+    main_window_layout->addWidget(misc_bar_);
 
     auto *right_column_widget = new QWidget{};
     auto *right_column_layout = new QVBoxLayout{right_column_widget};
@@ -109,27 +102,37 @@ Window::Window(QWidget *parent)
     progress_layout->addWidget(progress_back_button_, 0, Qt::AlignCenter);
     progress_layout->addStretch();
 
-    connect(progress_back_button_, &QPushButton::clicked, this, &Window::handle_home_button_click);
+    QMainWindow::connect(progress_back_button_, &QPushButton::clicked, this, &Window::handle_home_button_click);
 
     main_stacked_widget_->addWidget(home_page_);
     main_stacked_widget_->addWidget(accounts_page_);
     main_stacked_widget_->addWidget(progress_page_);
 
     right_column_layout->addWidget(main_stacked_widget_);
-    setup_bottom_bar();
-    right_column_layout->addWidget(bottom_bar_widget_, 0, Qt::AlignBottom);
+    right_column_layout->addWidget(control_bar_, 0, Qt::AlignBottom);
 
     main_window_layout->addWidget(right_column_widget);
 
     auto *central_widget = new Central_Widget{theme_config_, this};
     central_widget->setObjectName("central_widget");
     central_widget->setLayout(main_window_layout);
-    setCentralWidget(central_widget);
+    QMainWindow::setCentralWidget(central_widget);
 
-    bottom_bar_widget_->hide();
+    control_bar_->hide();
     handle_home_button_click();
 
-    connect(title_bar_, &Title_Bar::home_button_clicked, this, &Window::handle_home_button_click);
+    QMainWindow::connect(title_bar_, &Title_Bar::home_button_clicked, this, &Window::handle_home_button_click);
+
+    QMainWindow::connect(misc_bar_, &Misc_Bar::customize_theme_requested, this, &Window::handle_customize_theme_button_click);
+    QMainWindow::connect(misc_bar_, &Misc_Bar::check_for_updates_requested, updater_, &Updater::check_for_updates);
+    QMainWindow::connect(misc_bar_, &Misc_Bar::open_config_directory_requested, this, [this] {
+        const QString config_dir = account_config_->get_config_directory_path();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(config_dir));
+    });
+
+    QMainWindow::connect(control_bar_, &Control_Bar::login_clicked, this, &Window::handle_login_button_click);
+    QMainWindow::connect(control_bar_, &Control_Bar::add_account_clicked, this, &Window::handle_add_account_button_click);
+    QMainWindow::connect(control_bar_, &Control_Bar::remove_account_clicked, this, &Window::handle_remove_account_button_click);
 
     apply_theme();
     updater_->check_for_updates();
@@ -146,8 +149,8 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
     QMainWindow::resizeEvent(event);
     home_page_layout_->blockSignals(true);
 
-    const int available_content_height = height() - title_bar_->height() - bottom_bar_widget_->height();
-    const int available_content_width = width() - left_bar_widget_->width();
+    const int available_content_height = height() - title_bar_->height() - control_bar_->height();
+    const int available_content_width = width() - misc_bar_->width();
     if (available_content_width <= 0 || available_content_height <= 0) {
         home_page_layout_->blockSignals(false);
         return;
@@ -274,7 +277,7 @@ auto Window::mouseMoveEvent(QMouseEvent *event) -> void
                 }
             }
 
-            setGeometry(new_size);
+            QMainWindow::setGeometry(new_size);
         }
     }
 }
@@ -500,7 +503,7 @@ auto Window::handle_customize_theme_button_click() -> void
 auto Window::handle_home_button_click() -> void
 {
     title_bar_->set_home_button_visible(false);
-    bottom_bar_widget_->hide();
+    control_bar_->hide();
     reset_account_selection();
 
     main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Home));
@@ -515,14 +518,13 @@ auto Window::handle_game_banner_click(riot::Game game) -> void
 
     title_bar_->show();
     title_bar_->set_home_button_visible(true);
-    bottom_bar_widget_->show();
+    control_bar_->show();
 }
 
 auto Window::handle_table_selection_changed() -> void
 {
     const bool row_is_selected = !accounts_table_->selectedItems().isEmpty();
-    login_button_->setEnabled(row_is_selected);
-    remove_account_button_->setEnabled(row_is_selected);
+    control_bar_->set_controls_enabled(row_is_selected);
 }
 
 auto Window::handle_login_button_click() -> void
@@ -531,7 +533,7 @@ auto Window::handle_login_button_click() -> void
     if (row == -1) return;
 
     title_bar_->hide();
-    bottom_bar_widget_->hide();
+    control_bar_->hide();
 
     progress_status_label_->setText("Initializing...");
     progress_back_button_->hide();
@@ -629,77 +631,6 @@ auto Window::handle_account_cell_updated(int row, int column) -> void
     }
 }
 
-auto Window::setup_left_bar() -> void
-{
-    left_bar_widget_->setObjectName("left_bar_widget");
-    left_bar_widget_->setFixedWidth(30);
-
-    left_bar_layout_->setContentsMargins(5, 10, 5, 10);
-    left_bar_layout_->setSpacing(10);
-
-    options_button_->setObjectName("options_button");
-    options_button_->setIcon(QIcon::fromTheme("document-properties"));
-    options_button_->setFixedSize(20, 20);
-
-    auto *options_menu = new QMenu{options_button_};
-    auto *action_customize_theme = options_menu->addAction("customize theme");
-    action_customize_theme->setIcon(QIcon::fromTheme("weather-clear"));
-    connect(action_customize_theme, &QAction::triggered, this, &Window::handle_customize_theme_button_click);
-
-    options_menu->addSeparator();
-
-    auto *action_check_for_updates = options_menu->addAction("check for updates");
-    action_check_for_updates->setIcon(QIcon::fromTheme("emblem-synchronized"));
-    connect(action_check_for_updates, &QAction::triggered, updater_, &Updater::check_for_updates);
-
-    auto *action_open_directory = options_menu->addAction("open config directory");
-    action_open_directory->setIcon(QIcon::fromTheme("folder-open"));
-    connect(action_open_directory, &QAction::triggered, this, [this] {
-        const QString config_dir = account_config_->get_config_directory_path();
-        QDesktopServices::openUrl(QUrl::fromLocalFile(config_dir));
-    });
-
-    options_menu->addSeparator();
-
-    auto *action_close = options_menu->addAction("close");
-    action_close->setIcon(QIcon::fromTheme("window-close"));
-    connect(action_close, &QAction::triggered, options_menu, &QWidget::close);
-
-    options_button_->setMenu(options_menu);
-
-    left_bar_layout_->addWidget(options_button_);
-    left_bar_layout_->addStretch();
-}
-
-auto Window::setup_bottom_bar() -> void
-{
-    bottom_bar_widget_->setObjectName("bottom_bar_widget");
-    bottom_bar_widget_->setFixedHeight(50);
-
-    auto *bottom_bar_layout = new QHBoxLayout{bottom_bar_widget_};
-    bottom_bar_layout->setContentsMargins(10, 0, 15, 0);
-    bottom_bar_layout->setSpacing(10);
-
-    bottom_bar_layout->addWidget(login_button_);
-    bottom_bar_layout->addWidget(add_account_button_);
-    bottom_bar_layout->addWidget(remove_account_button_);
-    bottom_bar_layout->addStretch();
-
-    bottom_bar_game_icon_label_->setObjectName("game_icon_placeholder");
-    bottom_bar_game_icon_label_->setFixedSize(32, 32);
-    bottom_bar_game_icon_label_->setContentsMargins(0, 0, 0, 0);
-
-    auto *game_info_layout = new QHBoxLayout{};
-    game_info_layout->addWidget(bottom_bar_game_icon_label_);
-    game_info_layout->setContentsMargins(0, 0, 0, 0);
-    game_info_layout->setSpacing(5);
-    bottom_bar_layout->addLayout(game_info_layout);
-
-    connect(login_button_, &QPushButton::clicked, this, &Window::handle_login_button_click);
-    connect(add_account_button_, &QPushButton::clicked, this, &Window::handle_add_account_button_click);
-    connect(remove_account_button_, &QPushButton::clicked, this, &Window::handle_remove_account_button_click);
-}
-
 auto Window::setup_home_page() -> void
 {
     QPushButton *button_league = create_banner_button("league.jpg", riot::Game::League_of_Legends);
@@ -712,10 +643,12 @@ auto Window::setup_home_page() -> void
     home_page_layout_->addWidget(button_teamfight);
     home_page_layout_->addWidget(button_runeterra);
 
-    connect(button_league, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::League_of_Legends); });
-    connect(button_valorant, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Valorant); });
-    connect(button_teamfight, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Teamfight_Tactics); });
-    connect(button_runeterra, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Legends_of_Runeterra); });
+    QMainWindow::connect(button_league, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::League_of_Legends); });
+    QMainWindow::connect(button_valorant, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Valorant); });
+    QMainWindow::connect(button_teamfight, &QPushButton::clicked, this,
+                         [this] { handle_game_banner_click(riot::Game::Teamfight_Tactics); });
+    QMainWindow::connect(button_runeterra, &QPushButton::clicked, this,
+                         [this] { handle_game_banner_click(riot::Game::Legends_of_Runeterra); });
 }
 
 auto Window::setup_accounts_page() -> void
@@ -730,11 +663,10 @@ auto Window::setup_accounts_page() -> void
     accounts_table_->setEditTriggers(QAbstractItemView::DoubleClicked);
     accounts_table_->verticalHeader()->setVisible(false);
 
-    connect(accounts_table_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
+    QMainWindow::connect(accounts_table_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
     accounts_layout->addWidget(accounts_label_);
     accounts_layout->addWidget(accounts_table_);
-
-    connect(accounts_table_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
+    QMainWindow::connect(accounts_table_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
 
     refresh_accounts_table();
 }
@@ -755,13 +687,7 @@ auto Window::update_bottom_bar_content(riot::Game game) -> void
     case riot::Game::Legends_of_Runeterra: icon_filename = "runeterra-icon.png"; break;
     }
 
-    const auto game_icon = QIcon{game_icons_dir_ + icon_filename};
-    bottom_bar_game_icon_label_->setPixmap(game_icon.pixmap(QSize(32, 32)));
-    bottom_bar_game_icon_label_->show();
-
-    login_button_->show();
-    add_account_button_->show();
-    remove_account_button_->show();
+    control_bar_->update_game_context(game, game_icons_dir_ + icon_filename);
 }
 
 auto Window::create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *
