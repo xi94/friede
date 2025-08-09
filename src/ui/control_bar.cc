@@ -18,7 +18,8 @@ Control_Bar::Control_Bar(QWidget *parent)
 {
     QWidget::setObjectName("bottom_bar_widget");
     QWidget::setFixedHeight(50);
-    QWidget::setup_ui();
+
+    setup_ui();
 }
 
 auto Control_Bar::set_controls_enabled(bool enabled) -> void
