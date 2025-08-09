@@ -143,14 +143,26 @@ class Window final : public QMainWindow {
 
   private:
     Updater *updater_;
+
     core::Theme_Config *theme_config_;
     core::Account_Config *account_config_;
+
+    /// @brief The background thread for executing the Login_Worker.
     QThread worker_thread_;
+
+    /// @brief An in-memory cache of accounts to avoid frequent file I/O.
     QVector<core::Account> accounts_cache_;
+
+    /// @brief A cache of the original banner images for high-quality resizing.
     QMap<riot::Game, QPixmap> banner_pixmaps_;
+
+    /// @brief The game currently selected by the user from the home page.
     riot::Game current_game_;
 
+    /// @brief Stores the window geometry before a mouse drag/resize operation.
     QRect window_size_;
+
+    /// @brief Stores the initial mouse position for drag/resize calculations.
     QPoint mouse_click_position_;
 
     QString banners_dir_;

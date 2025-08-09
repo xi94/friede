@@ -57,7 +57,11 @@ class Theme_Editor final : public QDialog {
     QPushButton *preview_disabled_button_;
     QLabel *preview_disabled_label_;
 
+    /// @brief A reference to the theme object being actively modified by the editor.
     core::Theme &current_theme_;
+
+    /// @brief Maps each color picker button to its corresponding QColor in the theme.
+    /// @note This allows a single slot to handle clicks from any color button.
     QMap<QPushButton *, QColor *> color_map_;
 };
 

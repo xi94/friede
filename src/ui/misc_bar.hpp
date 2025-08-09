@@ -39,10 +39,8 @@ class Misc_Bar final : public QWidget {
     /// @brief Sets up the widgets, layout, and connections for the bar.
     auto setup_ui() -> void;
 
-    /// @brief The button that reveals the options menu.
+  private:
     QPushButton *options_button_;
-
-    /// @brief The menu containing miscellaneous actions.
     QMenu *options_menu_;
 };
 

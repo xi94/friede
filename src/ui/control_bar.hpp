@@ -48,16 +48,12 @@ class Control_Bar final : public QWidget {
     /// @brief Sets up the widgets, layout, and connections for the bar.
     auto setup_ui() -> void;
 
-    /// @brief Displays the icon of the currently selected game.
+  private:
+    /// @brief Displays a small icon of the icon of the currently selected game.
     QLabel *game_icon_label_;
 
-    /// @brief The button to log in with a selected account.
     QPushButton *login_button_;
-
-    /// @brief The button to add a new account.
     QPushButton *add_account_button_;
-
-    /// @brief The button to remove a selected account.
     QPushButton *remove_account_button_;
 };
 
