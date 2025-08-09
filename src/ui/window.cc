@@ -305,9 +305,6 @@ auto Window::on_login_finished(bool success, const QString &message) -> void
     progress_status_label_->setText(message);
     progress_back_button_->show();
 
-    //    misc_bar_->show();
-    //    title_bar_->set_home_button_visible(true);
-
     if (success) {
         progress_status_label_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().success.name()));
     } else {
@@ -338,145 +335,130 @@ auto Window::refresh_accounts_table() -> void
     handle_table_selection_changed();
 }
 
+// FIXME item border is 1 pixel off on the right, making that specific border thicker
 auto Window::generate_stylesheet(const core::Theme &theme) -> QString
 {
-    const auto colors = QString{"QMainWindow, QDialog, QWidget#central_widget, QWidget#home_page, "
-                                "QWidget#accounts_page, "
-                                "QWidget#progress_page {"
-                                "    background-color: %1;"
-                                "    color: %2;"
-                                "}"
-                                "QWidget#central_widget {"
-                                "    background-color: transparent;"
-                                "}"
-                                "QWidget#title_bar, QWidget#bottom_bar_widget, QWidget#left_bar_widget {"
-                                "    background-color: %8;"
-                                "    border-color: %3;"
-                                "}"
-                                "QMenu {"
-                                "    background-color: %8;"
-                                "    color: %2;"
-                                "    border-color: %3;"
-                                "}"
-                                "QMenu::item:selected {"
-                                "    background-color: %5;"
-                                "}"
-                                "QPushButton {"
-                                "    background-color: %4;"
-                                "    color: %2;"
-                                "    border-color: %3;"
-                                "}"
-                                "QPushButton:hover {"
-                                "    background-color: %5;"
-                                "}"
-                                "QPushButton:disabled {"
-                                "    background-color: %6;"
-                                "    color: %7;"
-                                "    border-color: %3;"
-                                "}"
-                                "QPushButton#banner_button {"
-                                "    background-color: transparent;"
-                                "    border-color: %9;"
-                                "}"
-                                "QPushButton#banner_button:hover {"
-                                "    border-color: %10;"
-                                "}"
-                                "QPushButton#home_button, QPushButton#options_button {"
-                                "    background-color: transparent;"
-                                "    border-color: transparent;"
-                                "}"
-                                "QPushButton#home_button:hover, QPushButton#options_button:hover {"
-                                "    background-color: %5;"
-                                "}"
-                                "QTableWidget {"
-                                "    background-color: %1;"
-                                "    border-color: %3;"
-                                "    gridline-color: %3;"
-                                "}"
-                                "QTableWidget::item {"
-                                "    background-color: %1;"
-                                "    color: %2;"
-                                "    border-color: %3;"
-                                "}"
-                                "QTableWidget::item:hover, QTableWidget::item:selected {"
-                                "    background-color: %5;"
-                                "    color: %2;"
-                                "}"
-                                "QHeaderView::section {"
-                                "    background-color: %8;"
-                                "    color: %2;"
-                                "    border-color: %3;"
-                                "}"
-                                "QLineEdit {"
-                                "    background-color: %8;"
-                                "    color: %2;"
-                                "    border-color: %3;"
-                                "}"
-                                "QLabel#game_icon_placeholder {"
-                                "    background-color: transparent;"
-                                "    border-color: transparent;"
-                                "}"}
-                            .arg(theme.background_dark.name(), theme.text_primary.name(), theme.border.name(), theme.button_primary.name(),
-                                 theme.button_hover.name(), theme.button_disabled.name(), theme.text_disabled.name(),
-                                 theme.background_light.name(), theme.accent.name(), theme.accent_hover.name());
+    const auto stylesheet_template =
+        QString{"QMainWindow, QDialog, QWidget#central_widget, QWidget#home_page, "
+                "QWidget#accounts_page, QWidget#progress_page {"
+                "    background-color: %1;"
+                "    color: %2;"
+                "}"
+                "QWidget#central_widget {"
+                "    background-color: transparent;"
+                "}"
+                "QWidget#title_bar {"
+                "    background-color: %8;"
+                "    border-bottom: 1px solid %3;"
+                "}"
+                "QWidget#bottom_bar_widget {"
+                "    background-color: %8;"
+                "    border-top: 1px solid %3;"
+                "}"
+                "QWidget#left_bar_widget {"
+                "    background-color: %8;"
+                "    border-right: 1px solid %3;"
+                "}"
+                "QMenu {"
+                "    background-color: %8;"
+                "    color: %2;"
+                "    border: 1px solid %3;"
+                "}"
+                "QMenu::item {"
+                "    padding: 4px 20px;"
+                "}"
+                "QMenu::item:selected {"
+                "    background-color: %5;"
+                "}"
+                "QPushButton {"
+                "    background-color: %4;"
+                "    color: %2;"
+                "    border: 1px solid %3;"
+                "    padding: 5px 15px;"
+                "    border-radius: 5px;"
+                "}"
+                "QPushButton:hover {"
+                "    background-color: %5;"
+                "}"
+                "QPushButton:disabled {"
+                "    background-color: %6;"
+                "    color: %7;"
+                "    border: 1px solid %3;"
+                "}"
+                "QPushButton#banner_button {"
+                "    background-color: transparent;"
+                "    border: 5px solid %9;"
+                "    padding: 0px;"
+                "}"
+                "QPushButton#banner_button:hover {"
+                "    border-color: #8f8f8f;"
+                "}"
+                "QPushButton#home_button, QPushButton#options_button {"
+                "    background-color: transparent;"
+                "    border: none;"
+                "    padding: 2px;"
+                "}"
+                "QPushButton#home_button:hover, QPushButton#options_button:hover {"
+                "    background-color: %5;"
+                "}"
+                "QPushButton#options_button::menu-indicator {"
+                "    image: none;"
+                "    width: 0px;"
+                "}"
+                "QPushButton#login_button, QPushButton#add_account_button, QPushButton#remove_account_button {"
+                "    background-color: transparent;"
+                "    border: none;"
+                "    border-radius: 5px;"
+                "    padding: 4px;"
+                "}"
+                "QPushButton#login_button:hover, QPushButton#add_account_button:hover, QPushButton#remove_account_button:hover {"
+                "    background-color: %5;"
+                "}"
+                "QPushButton#login_button:pressed, QPushButton#add_account_button:pressed, QPushButton#remove_account_button:pressed {"
+                "    background-color: %9;"
+                "}"
+                "QTableWidget {"
+                "    background-color: %1;"
+                "    border: 1px solid %3;"
+                "    gridline-color: %3;"
+                "}"
+                "QTableWidget::item {"
+                "    color: %2;"
+                "    border: none;"
+                "}"
+                "QTableWidget::item:selected {"
+                "    background-color: %5;"
+                "    color: %2;"
+                "}"
+                "QHeaderView::section {"
+                "    background-color: %8;"
+                "    color: %2;"
+                "    padding: 4px;"
+                "    border: none;"
+                "    border-bottom: 1px solid %3;"
+                "    border-right: 1px solid %3;"
+                "}"
+                "QLineEdit {"
+                "    background-color: %8;"
+                "    color: %2;"
+                "    border: 1px solid %3;"
+                "    padding: 5px;"
+                "    border-radius: 3px;"
+                "}"
+                "QPushButton, QLineEdit, QTableWidget, QHeaderView {"
+                "    outline: none;"
+                "}"};
 
-    const auto layout = QString{"QWidget#title_bar {"
-                                "    border-style: solid;"
-                                "    border-width: 0px 0px 1px 0px;"
-                                "}"
-                                "QWidget#bottom_bar_widget {"
-                                "    border-style: solid;"
-                                "    border-width: 1px 0px 0px 0px;"
-                                "}"
-                                "QWidget#left_bar_widget {"
-                                "    border-style: solid;"
-                                "    border-width: 0px 1px 0px 0px;"
-                                "}"
-                                "QMenu {"
-                                "    border: 1px solid;"
-                                "}"
-                                "QMenu::item {"
-                                "    padding: 4px 20px;"
-                                "}"
-                                "QPushButton, QLineEdit, QTableWidget, QHeaderView {"
-                                "    outline: none;"
-                                "}"
-                                "QPushButton {"
-                                "    border-style: solid;"
-                                "    border-width: 1px;"
-                                "    padding: 5px 15px;"
-                                "    border-radius: 5px;"
-                                "}"
-                                "QPushButton#banner_button {"
-                                "    border-width: 3px;"
-                                "    padding: 0px;"
-                                "}"
-                                "QPushButton#home_button, QPushButton#options_button {"
-                                "    border: none;"
-                                "    padding: 2px;"
-                                "}"
-                                "QPushButton#options_button::menu-indicator {"
-                                "    image: none;"
-                                "    width: 0px;"
-                                "}"
-                                "QTableWidget::item {"
-                                "    border-style: solid;"
-                                "    border-width: 0px 1px 1px 1px;"
-                                "}"
-                                "QHeaderView::section {"
-                                "    border: 1px solid;"
-                                "    padding: 4px;"
-                                "}"
-                                "QLineEdit {"
-                                "    border: 1px solid;"
-                                "    padding: 5px;"
-                                "    border-radius: 3px;"
-                                "}"
-                                "QLabel#game_icon_placeholder {"
-                                "    border: none;"
-                                "}"};
-
-    return colors + layout;
+    return stylesheet_template.arg(theme.background_dark.name(),  // %1
+                                   theme.text_primary.name(),     // %2
+                                   theme.border.name(),           // %3
+                                   theme.button_primary.name(),   // %4
+                                   theme.button_hover.name(),     // %5
+                                   theme.button_disabled.name(),  // %6
+                                   theme.text_disabled.name(),    // %7
+                                   theme.background_light.name(), // %8
+                                   theme.accent.name()            // %9
+    );
 }
 
 auto Window::apply_theme() -> void
@@ -660,19 +642,20 @@ auto Window::setup_accounts_page() -> void
     auto *accounts_layout = new QVBoxLayout{accounts_page_};
 
     accounts_table_->setHorizontalHeaderLabels({"Note", "Username", "Password"});
-    accounts_table_->horizontalHeader()->setStretchLastSection(true);
+
+    accounts_table_->horizontalHeader()->setStretchLastSection(false);
     accounts_table_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    accounts_table_->setSelectionMode(QAbstractItemView::SingleSelection);
-    accounts_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
-    accounts_table_->setEditTriggers(QAbstractItemView::DoubleClicked);
+
     accounts_table_->verticalHeader()->setVisible(false);
 
-    QMainWindow::connect(accounts_table_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
+    accounts_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    accounts_table_->setEditTriggers(QAbstractItemView::DoubleClicked);
+    accounts_table_->setShowGrid(true);
 
+    QMainWindow::connect(accounts_table_, &QTableWidget::cellChanged, this, &Window::handle_account_cell_updated);
     accounts_layout->addWidget(accounts_table_, 1);
 
     QMainWindow::connect(accounts_table_, &QTableWidget::itemSelectionChanged, this, &Window::handle_table_selection_changed);
-
     refresh_accounts_table();
 }
 

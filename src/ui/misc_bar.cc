@@ -4,8 +4,8 @@
 
 #include "ui/misc_bar.hpp"
 
+#include <QCoreApplication>
 #include <QIcon>
-
 namespace ui {
 
 Misc_Bar::Misc_Bar(QWidget *parent)

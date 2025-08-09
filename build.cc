@@ -76,8 +76,9 @@ auto add_build_dependencies(const talon::arguments &args, talon::workspace *work
     workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtCore");
     workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtWidgets");
     workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtGui");
+    workspace->add_includes("C:\\dev\\qt-build\\qtbase\\include\\QtSvg");
 
-    workspace->add_libraries("Qt6Widgets", "Qt6Core", "Qt6Gui", "Qt6Network");
+    workspace->add_libraries("Qt6Widgets", "Qt6Core", "Qt6Gui", "Qt6Network", "Qt6Svg");
     workspace->add_library_includes("C:\\dev\\qt-build\\qtbase\\lib");
 }
 
