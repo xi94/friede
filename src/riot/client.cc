@@ -19,9 +19,10 @@ using namespace std::string_view_literals;
 namespace riot {
 
 using Scoped_Handle = std::unique_ptr<void, decltype(&::CloseHandle)>;
-static constexpr std::array<std::wstring_view, 6> RIOT_PROCESS_NAMES = {L"Riot Client.exe"sv,  L"RiotClientServices.exe"sv,
-                                                                        L"RiotClientUx.exe"sv, L"RiotClientUxRender.exe"sv,
-                                                                        L"LeagueClient.exe"sv, L"LeagueClientUx.exe"sv};
+static constexpr std::array RIOT_PROCESS_NAMES = {L"Riot Client.exe"sv, L"RiotClientServices.exe"sv,
+                                                  L"RiotClientUx.exe"sv, L"RiotClientUxRender.exe"sv,
+                                                  L"LeagueClient.exe"sv, L"LeagueClientUx.exe"sv, 
+                                                  L"VALORANT-Win64-Shipping.exe"sv, L"LoR.exe"sv};
 
 Client::Client(std::string client_path)
     : path_{std::move(client_path)}
