@@ -126,6 +126,9 @@ class Window final : public QMainWindow {
     /// @brief Saves changes to an account after a cell is edited in the table.
     auto handle_account_cell_updated(int row, int column) -> void;
 
+    /// @brief 
+    auto handle_return_to_accounts_page() -> void;
+
     /// @brief Initializes the main home page with game selection banners.
     auto setup_home_page() -> void;
 

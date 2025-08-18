@@ -101,7 +101,7 @@ Window::Window(QWidget *parent)
     progress_layout->addWidget(progress_back_button_, 0, Qt::AlignCenter);
     progress_layout->addStretch();
 
-    QMainWindow::connect(progress_back_button_, &QPushButton::clicked, this, &Window::handle_home_button_click);
+    QMainWindow::connect(progress_back_button_, &QPushButton::clicked, this, &Window::handle_return_to_accounts_page);
 
     main_stacked_widget_->addWidget(home_page_);
     main_stacked_widget_->addWidget(accounts_page_);
@@ -300,14 +300,13 @@ auto Window::on_login_progress_update(const QString &message) -> void
     progress_status_label_->setText(message);
 }
 
-auto Window::on_login_finished(bool success, const QString &message) -> void
+auto Window::on_login_finished(bool success, [[maybe_unused]] const QString &message) -> void
 {
-    progress_status_label_->setText(message);
-    progress_back_button_->show();
-
     if (success) {
-        progress_status_label_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().success.name()));
+        progress_back_button_->click();
     } else {
+        progress_back_button_->show();
+        progress_status_label_->setText(message);
         progress_status_label_->setStyleSheet(QString("color: %1; font-weight: bold;").arg(theme_config_->load().error.name()));
     }
 }
@@ -616,6 +615,17 @@ auto Window::handle_account_cell_updated(int row, int column) -> void
     } else {
         accounts_cache_[row] = updated_account;
     }
+}
+
+auto Window::handle_return_to_accounts_page() -> void
+{
+    main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Accounts));
+
+    title_bar_->show();
+    title_bar_->set_home_button_visible(true);
+
+    misc_bar_->show();
+    control_bar_->show();
 }
 
 auto Window::setup_home_page() -> void
