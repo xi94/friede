@@ -166,6 +166,7 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
     int total_spacing = home_page_layout_->spacing() * (num_banners - 1);
     if (total_spacing < 0) total_spacing = 0;
 
+    // this is the aspect ratio of our banner pictures (1440x2160)
     constexpr double aspect_ratio = 2160.0 / 1440.0;
 
     int effective_image_area_width = available_content_width - horizontal_margins - total_spacing;
@@ -217,10 +218,12 @@ auto Window::resizeEvent(QResizeEvent *event) -> void
 
 auto Window::keyPressEvent(QKeyEvent *event) -> void
 {
-    if (event->key() == Qt::Key_Escape) {
+    const bool wants_to_unselect_item = event->key() == Qt::Key_Escape;
+    if (wants_to_unselect_item) {
         const bool account_table_empty = accounts_table_->selectedItems().isEmpty();
         if (!account_table_empty) reset_account_selection();
     }
+    
     QMainWindow::keyPressEvent(event);
 }
 
@@ -300,6 +303,7 @@ auto Window::on_login_progress_update(const QString &message) -> void
     progress_status_label_->setText(message);
 }
 
+// FIXME: if the login fails, the message gets shown in bright red text, but the red color stays for every single message afterwards
 auto Window::on_login_finished(bool success, [[maybe_unused]] const QString &message) -> void
 {
     if (success) {

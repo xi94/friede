@@ -3,6 +3,10 @@
 #include <format>
 #include <string_view>
 
+//
+// WARNING: this build script assumes that the qt tools 'moc.exe' and 'windeployqt.exe' are in the PATH environment
+//
+
 namespace fs = std::filesystem;
 using namespace std::literals;
 
@@ -10,7 +14,7 @@ auto generate_moc_files(std::initializer_list<std::string_view> relative_paths) 
 {
     fs::create_directories("moc");
 
-    for (const auto &path : relative_paths) {
+        for (const auto &path : relative_paths) {
         const auto input_path = fs::path{path};
 
         fs::path output_filename("moc_" + input_path.filename().string());
@@ -19,7 +23,9 @@ auto generate_moc_files(std::initializer_list<std::string_view> relative_paths) 
         const auto relative_output_path = fs::path{"moc"} / output_filename;
         const fs::path include_prefix = input_path.parent_path();
 
-        constexpr auto qt_include_path = "C:\\dev\\qt-build\\qtbase\\include"sv;
+        // constexpr auto qt_include_path = "C:\\dev\\qt-build\\qtbase\\include"sv;
+        constexpr auto qt_include_path = "C:\\Qt\\6.9.3\\msvc2022_64\\include"sv;
+
         const auto command =
             std::format(R"(moc -p {} -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -I{} -Isrc src\{} > {})", include_prefix.generic_string(),
                         qt_include_path, std::string(path), relative_output_path.generic_string());
@@ -72,14 +78,14 @@ auto add_build_dependencies(const talon::arguments &args, talon::workspace *work
     // qt (pls move this to thirdparty if possible :D)
     //
 
-    workspace->add_includes("C:\\Qt\\6.9.1\\msvc2022_64\\include");
-    workspace->add_includes("C:\\Qt\\6.9.1\\msvc2022_64\\include\\QtCore");
-    workspace->add_includes("C:\\Qt\\6.9.1\\msvc2022_64\\include\\QtWidgets");
-    workspace->add_includes("C:\\Qt\\6.9.1\\msvc2022_64\\include\\QtGui");
-    workspace->add_includes("C:\\Qt\\6.9.1\\msvc2022_64\\include\\QtSvg");
+    workspace->add_includes("C:\\Qt\\6.9.3\\msvc2022_64\\include");
+    workspace->add_includes("C:\\Qt\\6.9.3\\msvc2022_64\\include\\QtCore");
+    workspace->add_includes("C:\\Qt\\6.9.3\\msvc2022_64\\include\\QtWidgets");
+    workspace->add_includes("C:\\Qt\\6.9.3\\msvc2022_64\\include\\QtGui");
+    workspace->add_includes("C:\\Qt\\6.9.3\\msvc2022_64\\include\\QtSvg");
 
     workspace->add_libraries("Qt6Widgets", "Qt6Core", "Qt6Gui", "Qt6Network", "Qt6Svg");
-    workspace->add_library_includes("C:\\Qt\\6.9.1\\msvc2022_64\\lib");
+    workspace->add_library_includes("C:\\Qt\\6.9.3\\msvc2022_64\\lib");
 }
 
 auto set_build_options(const talon::arguments &args, talon::workspace *workspace) -> void
