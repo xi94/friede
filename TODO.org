@@ -1,0 +1,6 @@
+* TODO [0/3]
+  - [ ] rewrite ui automation wrapper completely, it is way too complicated
+
+  - [ ] please fix code organization in the ui folder, its really hard to know where anything is by just a glance
+
+  - [ ] for the love of god, remove all the useless random logic that clashes with other modules, FOR EXAMPLE THE RANDOM SWITCH STATEMENT THAT GETS THE APPROPRIATE ICON FOR THE MATCHING GAME JUST CHILLING IN MY UI CODE????
