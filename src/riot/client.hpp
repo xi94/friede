@@ -19,7 +19,13 @@
 namespace riot {
 
 /// @brief Represents the specific Riot Games that can be launched.
-enum class Game { League_of_Legends = 0, Valorant = 1, Teamfight_Tactics = 2, Legends_of_Runeterra = 3 };
+enum class Game {
+    League_of_Legends = 0,
+    Valorant = 1,
+    Teamfight_Tactics = 2,
+    Legends_of_Runeterra = 3,
+    TWO_XKO = 4, // TODO: come up with a better name
+};
 
 /// @brief Checks if an integer index is a valid Game enum value.
 constexpr inline auto is_game_index_out_of_range(const int index) -> bool
@@ -30,7 +36,8 @@ constexpr inline auto is_game_index_out_of_range(const int index) -> bool
     case E::League_of_Legends:
     case E::Valorant:
     case E::Teamfight_Tactics:
-    case E::Legends_of_Runeterra: return false;
+    case E::Legends_of_Runeterra:
+	case E::TWO_XKO: return false;
     default: return true;
     }
 }

@@ -53,7 +53,7 @@ Window::Window(QWidget *parent)
 {
     auto *worker = new Login_Worker{};
     worker->moveToThread(&worker_thread_);
-
+	
     QMainWindow::connect(&worker_thread_, &QThread::finished, worker, &QObject::deleteLater);
     QMainWindow::connect(this, &Window::start_login, worker, &Login_Worker::do_login);
     QMainWindow::connect(worker, &Login_Worker::progress_updated, this, &Window::on_login_progress_update);
@@ -638,11 +638,13 @@ auto Window::setup_home_page() -> void
     QPushButton *button_valorant = create_banner_button("valorant.jpg", riot::Game::Valorant);
     QPushButton *button_teamfight = create_banner_button("tft.jpg", riot::Game::Teamfight_Tactics);
     QPushButton *button_runeterra = create_banner_button("runeterra.jpg", riot::Game::Legends_of_Runeterra);
-
+	QPushButton *button_two_xko = create_banner_button("2xko.jpg", riot::Game::TWO_XKO);
+	
     home_page_layout_->addWidget(button_league);
     home_page_layout_->addWidget(button_valorant);
     home_page_layout_->addWidget(button_teamfight);
     home_page_layout_->addWidget(button_runeterra);
+    home_page_layout_->addWidget(button_two_xko);	
 
     QMainWindow::connect(button_league, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::League_of_Legends); });
     QMainWindow::connect(button_valorant, &QPushButton::clicked, this, [this] { handle_game_banner_click(riot::Game::Valorant); });
@@ -650,6 +652,8 @@ auto Window::setup_home_page() -> void
                          [this] { handle_game_banner_click(riot::Game::Teamfight_Tactics); });
     QMainWindow::connect(button_runeterra, &QPushButton::clicked, this,
                          [this] { handle_game_banner_click(riot::Game::Legends_of_Runeterra); });
+    QMainWindow::connect(button_two_xko, &QPushButton::clicked, this,
+                         [this] { handle_game_banner_click(riot::Game::TWO_XKO); });
 }
 
 auto Window::setup_accounts_page() -> void
@@ -688,6 +692,7 @@ auto Window::update_bottom_bar_content(riot::Game game) -> void
     case riot::Game::League_of_Legends: icon_filename = "league-icon.png"; break;
     case riot::Game::Teamfight_Tactics: icon_filename = "teamfight-icon.png"; break;
     case riot::Game::Legends_of_Runeterra: icon_filename = "runeterra-icon.png"; break;
+    case riot::Game::TWO_XKO: icon_filename = "2xko-icon.png"; break;		
     }
 
     control_bar_->update_game_context(game, game_icons_dir_ + icon_filename);

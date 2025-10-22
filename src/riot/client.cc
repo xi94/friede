@@ -61,6 +61,7 @@ auto Client::start(Game game) -> Result<void>
     return {};
 }
 
+// TODO: i really dont like this, and the code for the ui automation NEEDS to be nuked ASAP!
 auto Client::kill() -> Result<void>
 {
     bool process_killed = false;
@@ -96,13 +97,14 @@ auto Client::login(const std::string_view username, const std::string_view passw
     if (!uia_->set_focus_to_element(L"password")) return std::unexpected(Client_Error::Automation_Failed);
     if (!uia_->send_key_to_window(VK_RETURN)) return std::unexpected(Client_Error::Automation_Failed);
 
-    return {};
+	return {};
 }
 
 auto Client::is_alive() const -> bool
 {
     bool found = false;
 
+	// i dont like this at all
     std::ignore = for_each_riot_process([&found](const PROCESSENTRY32W &) {
         found = true;
         return false;
@@ -149,6 +151,8 @@ auto Client::get_game_parameter_id(Game game) -> std::string_view
 
     case Game::Teamfight_Tactics:
     case Game::League_of_Legends: return "league_of_legends"sv;
+
+	case Game::TWO_XKO: return "lion"sv;
     }
 
     return ""sv;
