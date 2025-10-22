@@ -528,12 +528,16 @@ auto Window::handle_login_button_click() -> void
     progress_status_label_->setText("Initializing...");
     progress_back_button_->hide();
 
+	// FIXME: what the fk? what is this random duplicate logic??
     QString icon_filename;
     switch (current_game_) {
     case riot::Game::League_of_Legends: icon_filename = "league-icon.png"; break;
     case riot::Game::Valorant: icon_filename = "valorant-icon.png"; break;
     case riot::Game::Teamfight_Tactics: icon_filename = "teamfight-icon.png"; break;
     case riot::Game::Legends_of_Runeterra: icon_filename = "runeterra-icon.png"; break;
+
+	// TODO: yeah this looks awful, i need to find a transparent version or make one myself
+    case riot::Game::TWO_XKO: icon_filename = "2xko-icon.png"; break;		
     }
 
     if (!icon_filename.isEmpty()) {
