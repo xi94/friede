@@ -6,7 +6,8 @@
             <title>Version 1.4.0</title>
             <pubDate>Thursday, 23 Oct 2025</pubDate>
         </item>
-            <enclosure          url="https://github.com/xi94/friede/releases/download/stable/friede-setup-v1.4.0.exe"
+            <enclosure         
+                url="https://github.com/xi94/friede/releases/download/stable/friede-setup-v1.4.0.exe"
                 sparkle:version="1.4.0"
                 type="application/octet-stream" />
         </item>
