@@ -42,6 +42,7 @@ constexpr inline auto is_game_index_out_of_range(const int index) -> bool
     }
 }
 
+/// @brief Returns the file name of the associated games icon resource.
 constexpr auto get_game_icon_name(const Game game) -> std::string_view
 {
     using E = Game;
