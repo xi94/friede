@@ -42,6 +42,21 @@ constexpr inline auto is_game_index_out_of_range(const int index) -> bool
     }
 }
 
+constexpr auto get_game_icon_name(const Game game) -> std::string_view
+{
+    using E = Game;
+	using namespace std::literals::string_view_literals;
+	
+    switch (game) {
+    case E::League_of_Legends: return "league-icon.png"sv;
+    case E::Valorant: return "valorant-icon.png"sv;
+    case E::Teamfight_Tactics: return "teamfight-icon.png"sv;
+    case E::Legends_of_Runeterra:return "runeterra-icon.png"sv;
+	case E::TWO_XKO: return "2xko-icon.png"sv;
+    default: return ""; // FIXME: lol fix this
+    }
+}
+
 /// @brief Defines error codes for Client operations.
 enum class Client_Error {
     None,

@@ -528,21 +528,11 @@ auto Window::handle_login_button_click() -> void
     progress_status_label_->setText("Initializing...");
     progress_back_button_->hide();
 
-	// FIXME: what the fk? what is this random duplicate logic??
-    QString icon_filename;
-    switch (current_game_) {
-    case riot::Game::League_of_Legends: icon_filename = "league-icon.png"; break;
-    case riot::Game::Valorant: icon_filename = "valorant-icon.png"; break;
-    case riot::Game::Teamfight_Tactics: icon_filename = "teamfight-icon.png"; break;
-    case riot::Game::Legends_of_Runeterra: icon_filename = "runeterra-icon.png"; break;
-
-	// TODO: yeah this looks awful, i need to find a transparent version or make one myself
-    case riot::Game::TWO_XKO: icon_filename = "2xko-icon.png"; break;		
-    }
-
-    if (!icon_filename.isEmpty()) {
-        const auto game_icon_pixmap = QPixmap(game_icons_dir_ + icon_filename);
-        progress_game_icon_label_->setPixmap(game_icon_pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    if (const std::string_view icon_filename = riot::get_game_icon_name(current_game_);
+        !icon_filename.empty())
+	{
+        const auto game_icon_pixmap = QPixmap(game_icons_dir_ + icon_filename.data());
+        progress_game_icon_label_->setPixmap(game_icon_pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));		
     }
 
     main_stacked_widget_->setCurrentIndex(static_cast<int>(Page::Progress));
@@ -689,17 +679,8 @@ auto Window::reset_account_selection() -> void
 
 auto Window::update_bottom_bar_content(riot::Game game) -> void
 {
-    QString icon_filename;
-
-    switch (game) {
-    case riot::Game::Valorant: icon_filename = "valorant-icon.png"; break;
-    case riot::Game::League_of_Legends: icon_filename = "league-icon.png"; break;
-    case riot::Game::Teamfight_Tactics: icon_filename = "teamfight-icon.png"; break;
-    case riot::Game::Legends_of_Runeterra: icon_filename = "runeterra-icon.png"; break;
-    case riot::Game::TWO_XKO: icon_filename = "2xko-icon.png"; break;		
-    }
-
-    control_bar_->update_game_context(game, game_icons_dir_ + icon_filename);
+	const QString icon_path = game_icons_dir_ + riot::get_game_icon_name(game).data();
+    control_bar_->update_game_context(game, icon_path);
 }
 
 auto Window::create_banner_button(const QString &image_path, riot::Game game) -> QPushButton *
