@@ -27,9 +27,11 @@ Updater::Updater(QWidget *parent)
     , network_manager_{new QNetworkAccessManager{this}}
 {
 }
-
+	
 auto Updater::check_for_updates() -> void
 {
+    // TODO: this whole xml is super incorrect as i attempted to use some library for this entire process,
+    //       but it just wouldnt work, so i wrote everything myself, meaning this xml has a lot of useless data that we dont care for
     const auto url = QUrl{"https://raw.githubusercontent.com/xi94/friede/main/appcast.xml"};
     const auto request = QNetworkRequest{url};
 

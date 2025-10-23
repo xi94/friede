@@ -227,7 +227,8 @@ auto Window::keyPressEvent(QKeyEvent *event) -> void
     QMainWindow::keyPressEvent(event);
 }
 
-// TODO clean this function up
+// TODO: clean this function up
+// FIXME: this function still moves the window if we try to drag it from the control buttons, including a weird teleport in the process.
 auto Window::mouseMoveEvent(QMouseEvent *event) -> void
 {
     if (event->buttons() == Qt::LeftButton) {
