@@ -12,7 +12,7 @@
 namespace ui {
 
 Title_Bar::Title_Bar(QWidget *parent, const QString &title)
-    : QWidget{parent} //    , title_label_{new QLabel{title, this}}
+    : QWidget{parent}
     , home_button_{new QPushButton{"", this}}
     , minimize_button_{new QPushButton{"", this}}
     , maximize_button_{new QPushButton{"", this}}
