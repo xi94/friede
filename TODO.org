@@ -13,3 +13,5 @@
   - [ ] fix or change the whole "Result" return type thing, i honestly find it very messy and hard to read and understand when its used like this
 
   - [ ] add a "About" button that shows the github repository, and the current version etc etc
+  
+  - [ ] make the updater forcibly bring the login manager to foreground after the update is done, and its launching the updated executable, as it can appear as though we are waiting when its already finished
