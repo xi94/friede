@@ -1,9 +1,8 @@
-* TODO [0/3]
+* TODO [0/10]
   - [ ] rewrite ui automation wrapper completely, it is way too complicated
 
   - [ ] please fix code organization in the ui folder, its really hard to know where anything is by just a glance
 
-    
   - [ ] for the love of god, remove all the useless random logic that clashes with other modules, FOR EXAMPLE THE RANDOM SWITCH STATEMENT THAT GETS THE APPROPRIATE ICON FOR THE MATCHING GAME JUST CHILLING IN MY UI CODE????
 
   - [ ] implement thread local storage check to see if the automation library has been initialized or not, also figure out how to make sure that we call the cleanup function when a thread exits, might need a specific thread wrapper or something of the sort to make sure we cant fuck this up
