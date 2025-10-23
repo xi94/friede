@@ -9,3 +9,5 @@
   - [ ] implement thread local storage check to see if the automation library has been initialized or not, also figure out how to make sure that we call the cleanup function when a thread exits, might need a specific thread wrapper or something of the sort to make sure we cant fuck this up
 
   - [ ] investigate why some people have a really long loading time when opening the application, this can be for the first time ever opening if i remember it correctly, or maybe it was every time who knows :D
+
+  - [ ] fix or change the whole "Result" return type thing, i honestly find it very messy and hard to read and understand when its used like this
