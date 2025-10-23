@@ -34,7 +34,7 @@ auto main(int argc, char *argv[]) -> int
     force_dark_mode(&app);
 
     app.setApplicationName("friede");
-    app.setApplicationVersion("1.3.2");
+    app.setApplicationVersion("1.4.0");
 
     auto window = ui::Window{};
     window.show();
