@@ -1,4 +1,4 @@
-# Friede - a login manager for the Riot Games desktop application.
+# Friede - A thirdparty login manager for the Riot Client.
 * It uses UI Automation to login efficiently, and finds all the installation directories on it's own.
 
 
