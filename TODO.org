@@ -18,3 +18,7 @@
   - [ ] add a popup window to the "Check for updates" button, that tells us that we are up to date if there is no update available
   
   - [ ] add a cancel button for the login procedure
+
+
+* DLC IDEAS [0/10]
+  - [ ] after redesigning the ui and fixing the login manager, potentially develop an android app (then ios) that serves the same purpose for the mobile games they provide?
