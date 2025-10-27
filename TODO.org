@@ -20,6 +20,8 @@
   - [ ] add a cancel button for the login procedure
 
   - [ ] ui scale % to increase readability on bigger monitors
+  
+  - [ ] option to remember window size
 
 
 * DLC IDEAS [0/10]
